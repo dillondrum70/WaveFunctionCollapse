@@ -3,6 +3,12 @@
 
 #include "WFC.h"
 
+FAdjacencySides::FAdjacencySides()
+{
+	Sides.SetNum(6);	//Must have 6 entries, one for each side
+}
+
+
 // Sets default values
 AWFC::AWFC()
 {

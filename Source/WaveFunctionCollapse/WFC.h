@@ -5,6 +5,7 @@
 #include "Tile.h"
 #include "Grid.h"
 
+#include "Containers/Map.h"
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
@@ -20,6 +21,36 @@ enum TileType {
 	FULL = 5
 };
 
+/*
+*	Set of 6 FAdjacencySide structs
+*/
+USTRUCT()
+struct FAdjacencySide
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditDefaultsOnly)
+	TArray<TEnumAsByte<TileType>> AdjacencyOptions;
+};
+
+/*
+*	Set of 6 FAdjacencySide structs
+*/
+USTRUCT()
+struct FAdjacencySides
+{
+	GENERATED_BODY()
+
+	FAdjacencySides();
+
+	UPROPERTY(EditDefaultsOnly)
+	TArray<FAdjacencySide> Sides;
+};
+
+
+/*
+*	Current State of a cell in the grid
+*/
 struct GridCell
 {
 	TileType Type;
@@ -43,11 +74,17 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	//The models corresponding to each cell
 	UPROPERTY(EditDefaultsOnly)
 	TMap<TEnumAsByte<TileType>, TSubclassOf<ATile>> TileModels;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	UGrid* TileGridComponent;
+	//The possibly adjacent tiles for each cell
+	//Each is an array with 6 elements (one for each side) with an array of possible sides
+	UPROPERTY(EditDefaultsOnly)
+	TMap<TEnumAsByte<TileType>, FAdjacencySides> TileAdjacency;
+
+	/*UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UGrid* TileGridComponent;*/
 
 	/*
 	*
@@ -55,12 +92,15 @@ public:
 	* 
 	*/
 
+	//Length of each side of a cell (cube)
 	UPROPERTY(EditDefaultsOnly)
 	float CellSize = 100;
 
+	//How many cells lie in each direction
 	UPROPERTY(EditDefaultsOnly)
 	FIntVector GridDimensions = FIntVector(10, 10, 1);
 
+	//Array storing current state of each cell
 	TArray<GridCell> GridCells;
 
 	/// <summary>
