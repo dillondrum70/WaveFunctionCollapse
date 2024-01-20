@@ -39,7 +39,8 @@ void AWFC::BeginPlay()
 
 				//Spawn Cell
 				AActor * CellModel = GetWorld()->SpawnActor(TileModels[TileType::FULL], &NewLocation);
-				cell.Tile = TileType::FULL;
+				cell.Type = TileType::FULL;
+				cell.Tile = StaticCast<ATile*>(CellModel);
 
 				//GridCells[x + GridDimensions.X * (y + GridDimensions.Y * z)];
 				GridCells.Add(cell);
@@ -53,5 +54,19 @@ void AWFC::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+}
+
+
+
+// Get grid cell by reference
+GridCell* AWFC::GetCell(FIntVector Index)
+{
+	int SingleIndex = Index.X + GridDimensions.X * (Index.Y + GridDimensions.Y * Index.Z);
+
+	//Out of range
+	if (SingleIndex > GridCells.Num()) { return nullptr; }
+
+	//Index the 1D array using 3D coordinates
+	return &GridCells[SingleIndex];
 }
 

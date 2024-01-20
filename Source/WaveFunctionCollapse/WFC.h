@@ -22,7 +22,8 @@ enum TileType {
 
 struct GridCell
 {
-	TileType Tile;
+	TileType Type;
+	ATile* Tile;
 };
 
 UCLASS()
@@ -58,7 +59,14 @@ public:
 	float CellSize = 100;
 
 	UPROPERTY(EditDefaultsOnly)
-	FVector GridDimensions = FVector(10, 10, 1);
+	FIntVector GridDimensions = FIntVector(10, 10, 1);
 
 	TArray<GridCell> GridCells;
+
+	/// <summary>
+	/// Get grid cell by reference
+	/// </summary>
+	/// <param name="Index">The 3D coordinates of the cell</param>
+	/// <returns>Grid Cell Reference</returns>
+	GridCell* GetCell(FIntVector Index);
 };
