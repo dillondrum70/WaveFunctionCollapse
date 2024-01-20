@@ -12,7 +12,7 @@
 #include "WFC.generated.h"
 
 UENUM(BlueprintType)
-enum TileType {
+enum ETileType {
 	EMPTY = 0 UMETA(DisplayName = "EMPTY"),
 	QUARTER = 1     UMETA(DisplayName = "QUARTER"),
 	HALF = 2     UMETA(DisplayName = "HALF"),
@@ -21,29 +21,54 @@ enum TileType {
 	FULL = 5
 };
 
+
+
 /*
-*	Set of 6 FAdjacencySide structs
+*	List of integers that are indices in GeneratedPrototypes corresponding to possible adjacent prototypes
 */
 USTRUCT()
 struct FAdjacencySide
 {
 	GENERATED_BODY()
 
-	UPROPERTY(EditDefaultsOnly)
-	TArray<TEnumAsByte<TileType>> AdjacencyOptions;
+	TList<int> AdjacencyOptions;
 };
 
+
+
 /*
-*	Set of 6 FAdjacencySide structs
+*
+*	Reference to the a tile subclass along with its possible adjacent prototypes
+*	This struct is used in the actual algorithm in lieu of the tiles themselves so that rotation can be accounted for
+* 
+*/
+USTRUCT()
+struct FPrototype
+{
+	//Referenced tile
+	TSubclassOf<ATile> Tile;
+
+	// Used during generation to determine how the Tile's profiles should be offset to reflect this tile's rotation in WFC
+	// Also used during tile placement, identifies which direction the tile should be rotated
+	TEnumAsByte<ERotation> Rotation;
+
+	//Adjacency list of possible tiles
+	FAdjacencySides AdjacencyLists;
+};
+
+
+
+/*
+*	Set of 4 FAdjaceencySide structs
 */
 USTRUCT()
 struct FAdjacencySides
 {
 	GENERATED_BODY()
 
+	//Initialize Sides with 4 elements
 	FAdjacencySides();
 
-	UPROPERTY(EditDefaultsOnly)
 	TArray<FAdjacencySide> Sides;
 };
 
@@ -53,9 +78,11 @@ struct FAdjacencySides
 */
 struct GridCell
 {
-	TileType Type;
+	ETileType Type;
 	ATile* Tile;
 };
+
+
 
 UCLASS()
 class WAVEFUNCTIONCOLLAPSE_API AWFC : public AActor
@@ -70,18 +97,26 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	void GeneratePrototypes();
+
+	void PlacePrototype();
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
 	//The models corresponding to each cell
 	UPROPERTY(EditDefaultsOnly)
-	TMap<TEnumAsByte<TileType>, TSubclassOf<ATile>> TileModels;
+	TMap<TEnumAsByte<ETileType>, TSubclassOf<ATile>> TileModels;
+
+	//Stores the prototypes generated at runtime
+	TArray<FPrototype> GeneratedPrototypes;
 
 	//The possibly adjacent tiles for each cell
-	//Each is an array with 6 elements (one for each side) with an array of possible sides
-	UPROPERTY(EditDefaultsOnly)
-	TMap<TEnumAsByte<TileType>, FAdjacencySides> TileAdjacency;
+	//Each is an array with 4 elements (one for each side) with an array of indices that correspond to the GeneratedPrototypes array
+	//Key - Name of prototype
+	//Value - An array of 4 arrays each containing an adjacency list
+	TMap<FString, FAdjacencySides> PrototypeAdjacency;
 
 	/*UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	UGrid* TileGridComponent;*/

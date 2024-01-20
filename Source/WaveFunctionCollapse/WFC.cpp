@@ -5,7 +5,7 @@
 
 FAdjacencySides::FAdjacencySides()
 {
-	Sides.SetNum(6);	//Must have 6 entries, one for each side
+	Sides.SetNum(4);	//Must have 6 entries, one for each side
 }
 
 
@@ -28,6 +28,11 @@ void AWFC::BeginPlay()
 	//Reserve memory now to avoid heavy allocations later
 	GridCells.Reserve(GridDimensions.X * GridDimensions.Y * GridDimensions.Z);
 
+	GeneratePrototypes();
+
+
+	////////// TEST CODE ////////////
+
 	int x, y, z;
 
 	//Iterate over all dimensions
@@ -44,8 +49,8 @@ void AWFC::BeginPlay()
 				FVector NewLocation = FVector(x * CellSize, y * CellSize, z * CellSize);
 
 				//Spawn Cell
-				AActor * CellModel = GetWorld()->SpawnActor(TileModels[TileType::FULL], &NewLocation);
-				cell.Type = TileType::FULL;
+				AActor * CellModel = GetWorld()->SpawnActor(TileModels[ETileType::FULL], &NewLocation);
+				cell.Type = ETileType::FULL;
 				cell.Tile = StaticCast<ATile*>(CellModel);
 
 				//GridCells[x + GridDimensions.X * (y + GridDimensions.Y * z)];
@@ -54,6 +59,20 @@ void AWFC::BeginPlay()
 		}
 	}
 }
+
+
+void AWFC::GeneratePrototypes()
+{
+
+}
+
+
+void AWFC::PlacePrototype()
+{
+	UE_LOG(LogTemp, Error, TEXT("Function Not Implemented: PlacePrototype()"));
+}
+
+
 
 // Called every frame
 void AWFC::Tick(float DeltaTime)

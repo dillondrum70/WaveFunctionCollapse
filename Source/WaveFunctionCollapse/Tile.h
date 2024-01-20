@@ -6,6 +6,34 @@
 #include "GameFramework/Actor.h"
 #include "Tile.generated.h"
 
+UENUM(BlueprintType)
+enum ERotation {
+	ZERO = 0 UMETA(DisplayName = "ZERO"),
+	NINETY = 1     UMETA(DisplayName = "NINETY"),
+	ONE_EIGHTY = 2     UMETA(DisplayName = "ONE_EIGHTY"),
+	TWO_SEVENTY = 3     UMETA(DisplayName = "TWO_SEVENTY")
+};
+
+UENUM()
+enum Direction
+{
+	DIR_NORTH = 0,
+	DIR_EAST = 1,
+	DIR_SOUTH = 2,
+	DIR_WEST = 3,
+	DIR_UP = 4,
+	DIR_DOWN = 5
+};
+
+USTRUCT()
+struct FTileProfile
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditDefaultsOnly)
+	FString Name;
+};
+
 UCLASS(BlueprintType, Blueprintable)
 class WAVEFUNCTIONCOLLAPSE_API ATile : public AActor
 {
@@ -15,13 +43,16 @@ public:
 	// Sets default values for this actor's properties
 	ATile();
 
+	UPROPERTY(EditDefaultsOnly)
+	TArray<FTileProfile> TileProfiles;
+		 
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	int id;	//Unique to each tile
-
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+
+
 };
