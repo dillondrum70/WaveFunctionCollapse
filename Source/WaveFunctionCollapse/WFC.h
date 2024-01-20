@@ -3,6 +3,8 @@
 #pragma once
 
 #include "Tile.h"
+#include "Grid.h"
+
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
@@ -16,6 +18,11 @@ enum TileType {
 	THREE_QUARTER = 3     UMETA(DisplayName = "THREE_QUARTER"),
 	DIAGONAL = 4  UMETA(DisplayName = "DIAGONAL"),
 	FULL = 5
+};
+
+struct GridCell
+{
+	TileType Tile;
 };
 
 UCLASS()
@@ -38,4 +45,20 @@ public:
 	UPROPERTY(EditDefaultsOnly)
 	TMap<TEnumAsByte<TileType>, TSubclassOf<ATile>> TileModels;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UGrid* TileGridComponent;
+
+	/*
+	*
+	* Grid
+	* 
+	*/
+
+	UPROPERTY(EditDefaultsOnly)
+	float CellSize = 100;
+
+	UPROPERTY(EditDefaultsOnly)
+	FVector GridDimensions = FVector(10, 10, 1);
+
+	TArray<GridCell> GridCells;
 };
