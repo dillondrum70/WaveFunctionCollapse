@@ -3,9 +3,20 @@
 
 #include "WFC.h"
 
+FAdjacencySide::FAdjacencySide()
+{
+	
+}
+
 FAdjacencySides::FAdjacencySides()
 {
 	Sides.SetNum(4);	//Must have 6 entries, one for each side
+}
+
+
+FPrototype::FPrototype()
+{
+
 }
 
 
@@ -62,6 +73,87 @@ void AWFC::BeginPlay()
 
 
 void AWFC::GeneratePrototypes()
+{
+	//Reserve and initialize the max amount of space needed, may not use it all
+	Prototypes.Init(FPrototype(), TileModels.Num() * 4);
+
+	InitializePrototypes();
+
+	CreateAdjacencies();
+
+	//Release extra reserved memory
+	Prototypes.Shrink();
+}
+
+
+void AWFC::InitializePrototypes()
+{
+	for (TPair<TEnumAsByte<ETileType>, TSubclassOf<ATile>> tile : TileModels)
+	{
+		ATile* DefaultTile = tile.Value.GetDefaultObject();
+
+		bool opposite1Symmetric = (DefaultTile->TileProfiles[0].Name == DefaultTile->TileProfiles[2].Name);	// Check opposite profiles match
+		bool opposite2Symmetric = (DefaultTile->TileProfiles[1].Name == DefaultTile->TileProfiles[3].Name); // Check other opposite profiles match
+
+		bool adjacentSymmetric = (DefaultTile->TileProfiles[0].Name == DefaultTile->TileProfiles[1].Name); // Check if 
+
+		//Fully symmetric, create 1 prototype
+		if (opposite1Symmetric && opposite2Symmetric && adjacentSymmetric)
+		{
+			UE_LOG(LogTemp, Display, TEXT("Symmetric"));
+			FPrototype p1;
+			p1.Tile = tile.Value;
+			p1.Rotation = ERotation::ZERO;
+
+			Prototypes.Add(p1);
+		}
+		else if (opposite1Symmetric && opposite2Symmetric) //Half symmetric, create 2 prototypes
+		{
+			UE_LOG(LogTemp, Display, TEXT("Half Symmetric"));
+			FPrototype p1;
+			p1.Tile = tile.Value;
+			p1.Rotation = ERotation::ZERO;
+
+			Prototypes.Add(p1);
+
+			FPrototype p2;
+			p1.Tile = tile.Value;
+			p1.Rotation = ERotation::NINETY;
+
+			Prototypes.Add(p1);
+		}
+		else // No Symmetry, create 4 prototypes
+		{
+			UE_LOG(LogTemp, Display, TEXT("No Symmetry"));
+			FPrototype p1;
+			p1.Tile = tile.Value;
+			p1.Rotation = ERotation::ZERO;
+
+			Prototypes.Add(p1);
+
+			FPrototype p2;
+			p1.Tile = tile.Value;
+			p1.Rotation = ERotation::NINETY;
+
+			Prototypes.Add(p1);
+
+			FPrototype p3;
+			p3.Tile = tile.Value;
+			p3.Rotation = ERotation::ONE_EIGHTY;
+
+			Prototypes.Add(p3);
+
+			FPrototype p4;
+			p4.Tile = tile.Value;
+			p4.Rotation = ERotation::TWO_SEVENTY;
+
+			Prototypes.Add(p4);
+		}
+	}
+}
+
+
+void AWFC::CreateAdjacencies()
 {
 
 }

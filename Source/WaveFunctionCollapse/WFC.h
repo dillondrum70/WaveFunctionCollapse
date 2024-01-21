@@ -31,31 +31,10 @@ struct FAdjacencySide
 {
 	GENERATED_BODY()
 
-	TList<int> AdjacencyOptions;
+	FAdjacencySide();
+
+	TArray<int> AdjacencyOptions;
 };
-
-
-
-/*
-*
-*	Reference to the a tile subclass along with its possible adjacent prototypes
-*	This struct is used in the actual algorithm in lieu of the tiles themselves so that rotation can be accounted for
-* 
-*/
-USTRUCT()
-struct FPrototype
-{
-	//Referenced tile
-	TSubclassOf<ATile> Tile;
-
-	// Used during generation to determine how the Tile's profiles should be offset to reflect this tile's rotation in WFC
-	// Also used during tile placement, identifies which direction the tile should be rotated
-	TEnumAsByte<ERotation> Rotation;
-
-	//Adjacency list of possible tiles
-	FAdjacencySides AdjacencyLists;
-};
-
 
 
 /*
@@ -70,6 +49,31 @@ struct FAdjacencySides
 	FAdjacencySides();
 
 	TArray<FAdjacencySide> Sides;
+};
+
+
+/*
+*
+*	Reference to the a tile subclass along with its possible adjacent prototypes
+*	This struct is used in the actual algorithm in lieu of the tiles themselves so that rotation can be accounted for
+* 
+*/
+USTRUCT()
+struct FPrototype
+{
+	GENERATED_BODY()
+
+	FPrototype();
+
+	//Referenced tile
+	TSubclassOf<ATile> Tile;
+
+	// Used during generation to determine how the Tile's profiles should be offset to reflect this tile's rotation in WFC
+	// Also used during tile placement, identifies which direction the tile should be rotated
+	TEnumAsByte<ERotation> Rotation;
+
+	//Adjacency list of possible tiles
+	FAdjacencySides AdjacencyLists;
 };
 
 
@@ -99,6 +103,10 @@ protected:
 
 	void GeneratePrototypes();
 
+	void InitializePrototypes();
+
+	void CreateAdjacencies();
+
 	void PlacePrototype();
 
 public:	
@@ -110,13 +118,13 @@ public:
 	TMap<TEnumAsByte<ETileType>, TSubclassOf<ATile>> TileModels;
 
 	//Stores the prototypes generated at runtime
-	TArray<FPrototype> GeneratedPrototypes;
+	TArray<FPrototype> Prototypes;
 
 	//The possibly adjacent tiles for each cell
 	//Each is an array with 4 elements (one for each side) with an array of indices that correspond to the GeneratedPrototypes array
 	//Key - Name of prototype
 	//Value - An array of 4 arrays each containing an adjacency list
-	TMap<FString, FAdjacencySides> PrototypeAdjacency;
+	//TMap<FString, FAdjacencySides> PrototypeAdjacency;
 
 	/*UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	UGrid* TileGridComponent;*/
