@@ -92,6 +92,8 @@ struct FPrototype
 */
 struct GridCell
 {
+	GridCell();
+
 	ATile* Tile;
 };
 
@@ -110,15 +112,31 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	void GeneratePrototypes();
+	/*
+	*	Preprocessing Functions
+	*/
 
-	void InitializePrototypes();
+	void GeneratePrototypes();
 
 	void CreateAdjacencies();
 
-	void PlacePrototype();
+	/*
+	*	Preprocessing Functions
+	*/
 
-	int GetDirRotated(EDirection input, ERotation modifier);
+	void RunAlgorithm();
+
+	/*
+	*	Helper Functions
+	*/
+
+	void InitializePrototypes();
+
+	inline int GetDirRotated(EDirection input, ERotation modifier);
+
+	FRotator GetRotation(ERotation Rotation);
+
+	void PlacePrototype(const FPrototype& Prototype, FIntVector GridIndex);
 
 public:	
 	// Called every frame

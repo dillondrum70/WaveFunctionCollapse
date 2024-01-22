@@ -30,6 +30,12 @@ void FPrototype::Init(TSubclassOf<ATile> TileClass, ERotation Rot)
 }
 
 
+GridCell::GridCell()
+{
+	Tile = nullptr;
+}
+
+
 // Sets default values
 AWFC::AWFC()
 {
@@ -47,9 +53,13 @@ void AWFC::BeginPlay()
 	Super::BeginPlay();
 	
 	//Reserve memory now to avoid heavy allocations later
-	GridCells.Reserve(GridDimensions.X * GridDimensions.Y * GridDimensions.Z);
+	GridCells.Init(GridCell(), GridDimensions.X * GridDimensions.Y * GridDimensions.Z);
 
+	//Preprocessing step, setting up for algorithm
 	GeneratePrototypes();
+
+	//Run the Wave Function Collapse algorithm and place tiles
+	RunAlgorithm();
 
 
 	////////// TEST CODE ////////////
@@ -63,19 +73,7 @@ void AWFC::BeginPlay()
 	//	{
 	//		for (x = 0; x < GridDimensions.X; x++)
 	//		{
-	//			//Index the 1D array as a 3D array
-	//			GridCell cell;
-	//			
-	//			//Calculate cell location
-	//			FVector NewLocation = FVector(x * CellSize, y * CellSize, z * CellSize);
-
-	//			//Spawn Cell
-	//			AActor * CellModel = GetWorld()->SpawnActor(TileModels[ETileType::FULL], &NewLocation);
-	//			cell.Type = ETileType::FULL;
-	//			cell.Tile = StaticCast<ATile*>(CellModel);
-
-	//			//GridCells[x + GridDimensions.X * (y + GridDimensions.Y * z)];
-	//			GridCells.Add(cell);
+	//			PlacePrototype(Prototypes[0], FIntVector(x, y, z));
 	//		}
 	//	}
 	//}
@@ -94,7 +92,6 @@ void AWFC::GeneratePrototypes()
 
 	CreateAdjacencies();
 
-
 	//////// TEST CODE /////////
 	//Print adjacency lists
 	/*for (FPrototype p : Prototypes)
@@ -108,7 +105,6 @@ void AWFC::GeneratePrototypes()
 				UE_LOG(LogTemp, Display, TEXT("%s"), *Prototypes[index].Name);
 			}
 		}
-		
 	}*/
 }
 
@@ -240,15 +236,54 @@ void AWFC::CreateAdjacencies()
 }
 
 
-void AWFC::PlacePrototype()
+void AWFC::RunAlgorithm()
 {
-	UE_LOG(LogTemp, Error, TEXT("Function Not Implemented: PlacePrototype()"));
+
 }
 
 
-int AWFC::GetDirRotated(EDirection input, ERotation modifier)
+void AWFC::PlacePrototype(const FPrototype& Prototype, FIntVector GridIndex)
+{
+	//Index the 1D array as a 3D array
+	GridCell* cell = GetCell(GridIndex);
+
+	//Calculate cell location
+	FVector NewLocation = FVector(GridIndex.X * CellSize, GridIndex.Y * CellSize, GridIndex.Z * CellSize);
+
+	//Spawn Cell
+	AActor* CellModel = GetWorld()->SpawnActor(Prototype.Tile, &NewLocation);
+	CellModel->SetActorRotation(GetRotation(Prototype.Rotation).Quaternion());	//Get FRotator from prototype rotation then rotate actor
+
+	//Store spawned actor in grid
+	cell->Tile = StaticCast<ATile*>(CellModel);
+}
+
+
+inline int AWFC::GetDirRotated(EDirection input, ERotation modifier)
 {
 	return ((input + EDirection::DIR_MAX) - modifier) % EDirection::DIR_MAX;
+}
+
+
+FRotator AWFC::GetRotation(ERotation Rotation)
+{
+	switch (Rotation)
+	{
+	case ERotation::ZERO:
+		return FRotator(0, 0, 0);
+		break;
+	case ERotation::NINETY:
+		return FRotator(0, 90, 0);
+		break;
+	case ERotation::ONE_EIGHTY:
+		return FRotator(0, 180, 0);
+		break;
+	case ERotation::TWO_SEVENTY:
+		return FRotator(0, 270, 0);
+		break;
+	default:
+		return FRotator(0, 0, 0);
+	}
 }
 
 
