@@ -52,15 +52,26 @@ void AWFC::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	//Reserve memory now to avoid heavy allocations later
-	GridCells.Init(GridCell(), GridDimensions.X * GridDimensions.Y * GridDimensions.Z);
-
 	//Preprocessing step, setting up for algorithm
 	GeneratePrototypes();
+
+	GridCell DefaultCell;	//Default state of a cell before WFC
+	DefaultCell.Tile = nullptr;
+	DefaultCell.Possibilities.SetNum(Prototypes.Num());
+
+	//Fill Possibilities with all possible indices in Prototypes
+	for(int i = 0; i < Prototypes.Num(); i++)
+	{
+		DefaultCell.Possibilities[i] = i;
+	}
+
+	//Initialize grid with default values, all cells can be any prototype
+	GridCells.Init(DefaultCell, GridDimensions.X * GridDimensions.Y * GridDimensions.Z);
 
 	//Run the Wave Function Collapse algorithm and place tiles
 	RunAlgorithm();
 
+	UE_LOG(LogTemp, Display, TEXT("Collapsed: %i   Total: %i"), CollapsedTiles, GridCells.Num());
 
 	////////// TEST CODE ////////////
 
@@ -238,7 +249,111 @@ void AWFC::CreateAdjacencies()
 
 void AWFC::RunAlgorithm()
 {
+	//Reset collapsed tiles to 0
+	CollapsedTiles = 0;
 
+	//While not collapsed
+	while (!IsCollapsed())
+	{
+		//Continue collapsing tiles
+		IterateAlgorithm();
+	}
+}
+
+
+void AWFC::IterateAlgorithm()
+{
+	/*
+	*	1. Find min entropy cell, consider priority queue
+	*	2. Collapse that cell by choosing and placing random tile (or the last remaining tile/ error if no remaining possibilities)
+	*	3. Propogate those changes to other cells
+	*/
+
+	//Index in GridCells of chosen lowest entropy cell
+	int index = FindLowestEntropy();
+
+	//Failed to find lowest entropy, exit early
+	if (index < 0) { return; }
+
+	//Collapse the grid cell at the lowest entropy index
+	CollapseCell(index);
+	
+
+}
+
+
+int AWFC::FindLowestEntropy()
+{
+	TArray<int> Indices;
+	int LowestPossible = Prototypes.Num();
+
+	for (int i = 0; i < GridCells.Num(); i++)
+	{
+		//If there is already something in this tile, continue
+		if (GridCells[i].Tile) { continue; }
+
+		//Continue if higher entropy
+		if (GridCells[i].Possibilities.Num() > LowestPossible) { continue; }
+
+		//Clear array and update new lowest entropy if lower possibilities
+		if (GridCells[i].Possibilities.Num() < LowestPossible)
+		{
+			Indices.Empty();
+			LowestPossible = GridCells[i].Possibilities.Num();
+		}
+
+		//If equal or lower, add this index to OutIndices
+		Indices.Add(i);
+	}
+
+	//Sanity check, there should be at least one lowest entropy cell
+	//Technically this could happen if a tile was set before the algorithm started, may want that functionality later
+	if (Indices.Num() <= 0)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("WFC quit early because there were no more uncollapsed cells.  AWFC::FindLowestEntropy"));
+		CollapsedTiles = GridCells.Num();
+		return -1;
+	}
+
+	//Chosen index is 0 by default
+	int RandIndex = Indices[0];
+
+	//Randomize if more options
+	if (Indices.Num() > 1)
+	{
+		RandIndex = FMath::RandRange(0, Indices.Num() - 1);
+	}
+
+	return Indices[RandIndex];
+}
+
+
+void AWFC::CollapseCell(int Index)
+{
+	GridCell* Cell = &GridCells[Index];
+
+	//Ensure Cell is not null
+	if (!Cell)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Cell is not valid at GridCells index %i.  AWFC::CollapseCell"), Index);
+		return;
+	}
+
+	//Sanity check, ensure there is at least one possibility
+	check(Cell->Possibilities.Num() > 0)
+
+	//Default to 0
+	int TileIndex = 0;
+
+	//If more than one possibility, choose randomly
+	if (Cell->Possibilities.Num() > 1)
+	{
+		TileIndex = FMath::RandRange(0, Cell->Possibilities.Num() - 1);
+	}
+
+	//Place the chosen tile
+	int ProIndex = Cell->Possibilities[TileIndex];
+	PlacePrototype(Prototypes[ProIndex], IntToGridIndex(Index));
 }
 
 
@@ -256,6 +371,12 @@ void AWFC::PlacePrototype(const FPrototype& Prototype, FIntVector GridIndex)
 
 	//Store spawned actor in grid
 	cell->Tile = StaticCast<ATile*>(CellModel);
+
+	//Increment to track collapsed tiles
+	CollapsedTiles++;
+
+	UE_LOG(LogTemp, Display, TEXT("Collapsed: %i   Index: (%i, %i, %i)   Tile Name: %s"), 
+		CollapsedTiles, GridIndex.X, GridIndex.Y, GridIndex.Z, *cell->Tile->Name)
 }
 
 
@@ -300,7 +421,7 @@ void AWFC::Tick(float DeltaTime)
 // Get grid cell by reference
 GridCell* AWFC::GetCell(FIntVector Index)
 {
-	int SingleIndex = Index.X + GridDimensions.X * (Index.Y + GridDimensions.Y * Index.Z);
+	int SingleIndex = GridIndexToInt(Index);
 
 	//Out of range
 	if (SingleIndex > GridCells.Num()) { return nullptr; }
@@ -309,3 +430,22 @@ GridCell* AWFC::GetCell(FIntVector Index)
 	return &GridCells[SingleIndex];
 }
 
+inline int AWFC::GridIndexToInt(FIntVector GridIndex)
+{
+	return GridIndex.X + GridDimensions.X * (GridIndex.Y + GridDimensions.Y * GridIndex.Z);
+}
+
+FIntVector AWFC::IntToGridIndex(int Index)
+{
+	FIntVector GridIndex = FIntVector(0, 0, 0);
+
+	GridIndex.Z = Index / (GridDimensions.X * GridDimensions.Y);
+	Index -= GridIndex.Z * (GridDimensions.X * GridDimensions.Y);
+
+	GridIndex.Y = Index / GridDimensions.X;
+	Index -= GridIndex.Y * GridDimensions.X;
+
+	GridIndex.X = Index;
+
+	return GridIndex;
+}

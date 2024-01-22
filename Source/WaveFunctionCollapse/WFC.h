@@ -95,6 +95,8 @@ struct GridCell
 	GridCell();
 
 	ATile* Tile;
+
+	TArray<int> Possibilities;	//Each index is the index possible neighbor in WFC::Prototypes 
 };
 
 
@@ -109,6 +111,10 @@ public:
 	AWFC();
 
 protected:
+
+	//How many tiles have been collapsed by WFC
+	int CollapsedTiles;
+
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
@@ -116,27 +122,79 @@ protected:
 	*	Preprocessing Functions
 	*/
 
+	/// <summary>
+	/// Create prototypes for all possible rotations of each tile
+	/// </summary>
 	void GeneratePrototypes();
 
+	/// <summary>
+	/// Create the adjacency list for each prototype
+	/// </summary>
 	void CreateAdjacencies();
 
 	/*
 	*	Wave Function Collapse Algorithm Functions
 	*/
 
+	/// <summary>
+	/// Run the WFC algorithm and place tiles
+	/// </summary>
 	void RunAlgorithm();
+
+	/// <summary>
+	/// Run at each iteration of the WFC algorithm
+	/// </summary>
+	void IterateAlgorithm();
+
+	/// <summary>
+	/// Find the lowest entropy cells
+	/// </summary>
+	/// <param name="Index">Out parameter of the indices in grid that have lowest entropy</param>
+	int FindLowestEntropy();
+
+	/// <summary>
+	/// Collapse the cell in GridCells at the given index.
+	/// This chooses a tile from its possibilities and spawns that tile.
+	/// </summary>
+	/// <param name="index">Index to collapse at</param>
+	void CollapseCell(int Index);
 
 	/*
 	*	Helper Functions
 	*/
 
+	/// <summary>
+	/// Create the initial prototypes for each rotation
+	/// </summary>
 	void InitializePrototypes();
 
+	/// <summary>
+	/// Get the rotated direction based on some ERotation
+	/// </summary>
+	/// <param name="input">The direction to rotate</param>
+	/// <param name="modifier">How much to rotate by</param>
+	/// <returns>The new rotated direction expressed as an integer</returns>
 	inline int GetDirRotated(EDirection input, ERotation modifier);
 
+	/// <summary>
+	/// Convert an ERotation to an FRotator
+	/// </summary>
+	/// <param name="Rotation">ERotation to convert</param>
+	/// <returns>FRotator conversion</returns>
 	FRotator GetRotation(ERotation Rotation);
 
+	/// <summary>
+	/// Place a tile at a grid index and rotate it
+	/// </summary>
+	/// <param name="Prototype">Prototype with rotation and tile info</param>
+	/// <param name="GridIndex">Index to place tile at</param>
 	void PlacePrototype(const FPrototype& Prototype, FIntVector GridIndex);
+
+	/// <summary>
+	/// Check if the wave function collapse has completed
+	/// </summary>
+	/// <returns>Whether or not WFC is done</returns>
+	inline bool IsCollapsed() { return CollapsedTiles >= GridCells.Num(); }
 
 public:	
 	// Called every frame
@@ -181,4 +239,18 @@ public:
 	/// <param name="Index">The 3D coordinates of the cell</param>
 	/// <returns>Grid Cell Reference</returns>
 	GridCell* GetCell(FIntVector Index);
+
+	/// <summary>
+	/// Convert a 3D index in the grid into a flattened integer for a 1D array representing three dimensions
+	/// </summary>
+	/// <param name="GridIndex">Index to convert</param>
+	/// <returns>Integer conversion</returns>
+	inline int GridIndexToInt(FIntVector GridIndex);
+
+	/// <summary>
+	/// Convert an integer index into a 3D index in the grid, the opposite of GridIndexToInt
+	/// </summary>
+	/// <param name="Index">Index to convert</param>
+	/// <returns>FIntVector conversion</returns>
+	FIntVector IntToGridIndex(int Index);
 };
