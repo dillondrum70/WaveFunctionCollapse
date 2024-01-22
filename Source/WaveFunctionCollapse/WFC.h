@@ -121,7 +121,7 @@ protected:
 	void CreateAdjacencies();
 
 	/*
-	*	Preprocessing Functions
+	*	Wave Function Collapse Algorithm Functions
 	*/
 
 	void RunAlgorithm();
