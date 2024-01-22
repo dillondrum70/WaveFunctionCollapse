@@ -316,7 +316,7 @@ int AWFC::FindLowestEntropy()
 	}
 
 	//Chosen index is 0 by default
-	int RandIndex = Indices[0];
+	int RandIndex = 0;
 
 	//Randomize if more options
 	if (Indices.Num() > 1)
