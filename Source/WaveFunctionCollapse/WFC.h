@@ -65,6 +65,16 @@ struct FPrototype
 
 	FPrototype();
 
+	/// <summary>
+	/// Initialize prototype values
+	/// </summary>
+	/// <param name="TileType">Type of tile taken as the enum key from the map of TileModels</param>
+	/// <param name="TileClass">TSubclassOf an ATile, allows us to spawn it later</param>
+	/// <param name="Rot">The rotation of the tile</param>
+	void Init(TEnumAsByte<ETileType> TileType, TSubclassOf<ATile> TileClass, ERotation Rot);
+
+	FString Name;
+
 	//Referenced tile
 	TSubclassOf<ATile> Tile;
 
@@ -108,6 +118,8 @@ protected:
 	void CreateAdjacencies();
 
 	void PlacePrototype();
+
+	int GetDirRotated(EDirection input, ERotation modifier);
 
 public:	
 	// Called every frame

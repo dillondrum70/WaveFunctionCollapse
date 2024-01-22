@@ -15,14 +15,13 @@ enum ERotation {
 };
 
 UENUM()
-enum Direction
+enum EDirection
 {
 	DIR_NORTH = 0,
 	DIR_EAST = 1,
 	DIR_SOUTH = 2,
 	DIR_WEST = 3,
-	DIR_UP = 4,
-	DIR_DOWN = 5
+	DIR_MAX = 4
 };
 
 USTRUCT()
@@ -32,6 +31,9 @@ struct FTileProfile
 
 	UPROPERTY(EditDefaultsOnly)
 	FString Name;
+
+public:
+	bool operator==(const FTileProfile& rhs);
 };
 
 UCLASS(BlueprintType, Blueprintable)

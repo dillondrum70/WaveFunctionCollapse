@@ -3,6 +3,11 @@
 
 #include "Tile.h"
 
+bool FTileProfile::operator==(const FTileProfile& rhs)
+{
+	return Name == rhs.Name;
+}
+
 // Sets default values
 ATile::ATile()
 {
