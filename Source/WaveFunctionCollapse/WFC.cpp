@@ -19,13 +19,13 @@ FPrototype::FPrototype()
 
 }
 
-void FPrototype::Init(TEnumAsByte<ETileType> TileType, TSubclassOf<ATile> TileClass, ERotation Rot)
+void FPrototype::Init(TSubclassOf<ATile> TileClass, ERotation Rot)
 {
 	this->Tile = TileClass;
 	this->Rotation = Rot;
 
 	//Form name as "<Tile Type>_<Rotation>"
-	this->Name = UEnum::GetValueAsString(TileType) + "_";
+	this->Name = this->Tile.GetDefaultObject()->Name + "_";
 	this->Name.AppendInt((int)this->Rotation);
 }
 
@@ -94,12 +94,10 @@ void AWFC::GeneratePrototypes()
 
 	CreateAdjacencies();
 
-	
-
 
 	//////// TEST CODE /////////
 	//Print adjacency lists
-	for (FPrototype p : Prototypes)
+	/*for (FPrototype p : Prototypes)
 	{
 		UE_LOG(LogTemp, Display, TEXT("%s Adjacency Lists"), *p.Name);
 		for (int i = 0; i < p.AdjacencyLists.Sides.Num(); i++)
@@ -111,64 +109,62 @@ void AWFC::GeneratePrototypes()
 			}
 		}
 		
-	}
+	}*/
 }
 
 
 void AWFC::InitializePrototypes()
 {
-	int count = 0;
-
-	for (const TPair<TEnumAsByte<ETileType>, TSubclassOf<ATile>>& tile : TileModels)
+	for (const TSubclassOf<ATile>& tile : TileModels)
 	{
-		ATile* DefaultTile = tile.Value.GetDefaultObject();
+		ATile* DefaultTile = tile.GetDefaultObject();
 
 		if (!DefaultTile) { UE_LOG(LogTemp, Error, TEXT("DefaultTile is Invalid.  WFC::InitializePrototypes()")); }
 
-		bool opposite1Symmetric = (DefaultTile->TileProfiles[0].Name == DefaultTile->TileProfiles[2].Name);	// Check opposite profiles match
-		bool opposite2Symmetric = (DefaultTile->TileProfiles[1].Name == DefaultTile->TileProfiles[3].Name); // Check other opposite profiles match
+		bool opposite1Symmetric = (DefaultTile->TileProfiles[0].ProfileName == DefaultTile->TileProfiles[2].ProfileName);	// Check opposite profiles match
+		bool opposite2Symmetric = (DefaultTile->TileProfiles[1].ProfileName == DefaultTile->TileProfiles[3].ProfileName); // Check other opposite profiles match
 
-		bool adjacentSymmetric = (DefaultTile->TileProfiles[0].Name == DefaultTile->TileProfiles[1].Name); // Check if 
+		bool adjacentSymmetric = (DefaultTile->TileProfiles[0].ProfileName == DefaultTile->TileProfiles[1].ProfileName); // Check if 
 
 		//Fully symmetric, create 1 prototype
 		if (opposite1Symmetric && opposite2Symmetric && adjacentSymmetric)
 		{
 			FPrototype p1;
-			p1.Init(tile.Key, tile.Value, ERotation::ZERO);
+			p1.Init(tile, ERotation::ZERO);
 
 			Prototypes.Add(p1);
 		}
 		else if (opposite1Symmetric && opposite2Symmetric) //Half symmetric, create 2 prototypes
 		{
 			FPrototype p1;
-			p1.Init(tile.Key, tile.Value, ERotation::ZERO);
+			p1.Init(tile, ERotation::ZERO);
 
 			Prototypes.Add(p1);
 
 			FPrototype p2;
-			p2.Init(tile.Key, tile.Value, ERotation::NINETY);
+			p2.Init(tile, ERotation::NINETY);
 
 			Prototypes.Add(p2);
 		}
 		else // No Symmetry, create 4 prototypes
 		{
 			FPrototype p1;
-			p1.Init(tile.Key, tile.Value, ERotation::ZERO);
+			p1.Init(tile, ERotation::ZERO);
 
 			Prototypes.Add(p1);
 
 			FPrototype p2;
-			p2.Init(tile.Key, tile.Value, ERotation::NINETY);
+			p2.Init(tile, ERotation::NINETY);
 
 			Prototypes.Add(p2);
 
 			FPrototype p3;
-			p3.Init(tile.Key, tile.Value, ERotation::ONE_EIGHTY);
+			p3.Init(tile, ERotation::ONE_EIGHTY);
 
 			Prototypes.Add(p3);
 
 			FPrototype p4;
-			p4.Init(tile.Key, tile.Value, ERotation::TWO_SEVENTY);
+			p4.Init(tile, ERotation::TWO_SEVENTY);
 
 			Prototypes.Add(p4);
 		}

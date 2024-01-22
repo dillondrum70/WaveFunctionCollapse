@@ -5,7 +5,7 @@
 
 bool FTileProfile::operator==(const FTileProfile& rhs)
 {
-	return Name == rhs.Name;
+	return ProfileName == rhs.ProfileName;
 }
 
 // Sets default values

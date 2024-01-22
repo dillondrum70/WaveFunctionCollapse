@@ -30,7 +30,7 @@ struct FTileProfile
 	GENERATED_BODY()
 
 	UPROPERTY(EditDefaultsOnly)
-	FString Name;
+	FString ProfileName;
 
 public:
 	bool operator==(const FTileProfile& rhs);
@@ -44,6 +44,9 @@ class WAVEFUNCTIONCOLLAPSE_API ATile : public AActor
 public:	
 	// Sets default values for this actor's properties
 	ATile();
+
+	UPROPERTY(EditDefaultsOnly)
+	FString Name;
 
 	UPROPERTY(EditDefaultsOnly)
 	TArray<FTileProfile> TileProfiles;

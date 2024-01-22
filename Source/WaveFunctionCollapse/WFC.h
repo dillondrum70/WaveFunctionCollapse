@@ -11,15 +11,15 @@
 #include "GameFramework/Actor.h"
 #include "WFC.generated.h"
 
-UENUM(BlueprintType)
-enum ETileType {
-	EMPTY = 0 UMETA(DisplayName = "EMPTY"),
-	QUARTER = 1     UMETA(DisplayName = "QUARTER"),
-	HALF = 2     UMETA(DisplayName = "HALF"),
-	THREE_QUARTER = 3     UMETA(DisplayName = "THREE_QUARTER"),
-	DIAGONAL = 4  UMETA(DisplayName = "DIAGONAL"),
-	FULL = 5
-};
+//UENUM(BlueprintType)
+//enum ETileType {
+//	EMPTY = 0 UMETA(DisplayName = "EMPTY"),
+//	QUARTER = 1     UMETA(DisplayName = "QUARTER"),
+//	HALF = 2     UMETA(DisplayName = "HALF"),
+//	THREE_QUARTER = 3     UMETA(DisplayName = "THREE_QUARTER"),
+//	DIAGONAL = 4  UMETA(DisplayName = "DIAGONAL"),
+//	FULL = 5
+//};
 
 
 
@@ -71,7 +71,7 @@ struct FPrototype
 	/// <param name="TileType">Type of tile taken as the enum key from the map of TileModels</param>
 	/// <param name="TileClass">TSubclassOf an ATile, allows us to spawn it later</param>
 	/// <param name="Rot">The rotation of the tile</param>
-	void Init(TEnumAsByte<ETileType> TileType, TSubclassOf<ATile> TileClass, ERotation Rot);
+	void Init(TSubclassOf<ATile> TileClass, ERotation Rot);
 
 	FString Name;
 
@@ -92,7 +92,6 @@ struct FPrototype
 */
 struct GridCell
 {
-	ETileType Type;
 	ATile* Tile;
 };
 
@@ -127,7 +126,7 @@ public:
 
 	//The models corresponding to each cell
 	UPROPERTY(EditDefaultsOnly)
-	TMap<TEnumAsByte<ETileType>, TSubclassOf<ATile>> TileModels;
+	TSet<TSubclassOf<ATile>> TileModels;
 
 	//Stores the prototypes generated at runtime
 	TArray<FPrototype> Prototypes;
