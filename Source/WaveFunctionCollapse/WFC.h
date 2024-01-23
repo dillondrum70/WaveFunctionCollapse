@@ -166,7 +166,7 @@ protected:
 	/// </summary>
 	/// <param name="Prototype">Prototype with rotation and tile info</param>
 	/// <param name="GridIndex">Index to place tile at</param>
-	void PlacePrototype(const FPrototype& Prototype, FIntVector GridIndex);
+	void PlacePrototype(int PrototypeIndex, FIntVector GridIndex);
 
 	/// <summary>
 	/// Check if the wave function collapse has completed

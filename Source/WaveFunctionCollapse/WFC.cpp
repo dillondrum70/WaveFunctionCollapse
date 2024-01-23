@@ -59,17 +59,19 @@ void AWFC::BeginPlay()
 	GridCells.Init(DefaultCell, GridDimensions.X * GridDimensions.Y * GridDimensions.Z);
 	
 	//Run the Wave Function Collapse algorithm and place tiles
-	//RunAlgorithm();
-	UE_LOG(LogTemp, Display, TEXT("Possibilities - %i"), Prototypes.Num());
+	RunAlgorithm();
+	
+
+	////////// TEST CODE ////////////
+
+	/*UE_LOG(LogTemp, Display, TEXT("Possibilities - %i"), Prototypes.Num());
 	TArray<int> n = GetPossibleNeighbors(15, EDirection::DIR_NORTH);
 	for (int t : n)
 	{
 		UE_LOG(LogTemp, Display, TEXT("%i"), t);
-	}
+	}*/
 
 	UE_LOG(LogTemp, Display, TEXT("Collapsed: %i   Total: %i"), CollapsedTiles, GridCells.Num());
-
-	////////// TEST CODE ////////////
 
 	//int x, y, z;
 
@@ -101,7 +103,7 @@ void AWFC::GeneratePrototypes()
 
 	//////// TEST CODE /////////
 	//Print adjacency lists
-	for (FPrototype p : Prototypes)
+	/*for (FPrototype p : Prototypes)
 	{
 		UE_LOG(LogTemp, Display, TEXT("%s Adjacency Lists"), *p.Name);
 		for (int i = 0; i < p.AdjacencyLists.Sides.Num(); i++)
@@ -112,7 +114,7 @@ void AWFC::GeneratePrototypes()
 				UE_LOG(LogTemp, Display, TEXT("%s"), *Prototypes[index].Name);
 			}
 		}
-	}
+	}*/
 }
 
 
@@ -370,7 +372,7 @@ void AWFC::CollapseCell(int Index)
 
 	//Place the chosen tile
 	int ProIndex = Cell->Possibilities[TileIndex];
-	PlacePrototype(Prototypes[ProIndex], IntToGridIndex(Index));
+	PlacePrototype(ProIndex, IntToGridIndex(Index));
 }
 
 
@@ -404,12 +406,13 @@ void AWFC::PropogateCellChanges(int Index)
 
 			//Use the adjacency list for this direction to decide which possible prototypes to remove
 			//const FAdjacencySide* AdjList = &GridCells[Index].Tile->AdjacencyLists->Sides[dir];
+			TArray<int> PossibleNeighbors = GetPossibleNeighbors(CurrentIndex, (EDirection)dir);
 
 			//Iterate over prototype options
 			for (oth = 0; oth < OtherPossibilities.Num(); oth++)
 			{
 				//If list of possible adjacent prototypes for current cell doesn't contain a possible prototype in an adjacent cell
-				//if (!AdjList->AdjacencyOptions.Contains(OtherPossibilities[oth]))
+				if (!PossibleNeighbors.Contains(OtherPossibilities[oth]))
 				{
 					//Remove possibility from adjacent cell
 					OtherCell->Possibilities.Remove(OtherPossibilities[oth]);
@@ -443,7 +446,7 @@ void AWFC::PropogateCellChanges(int Index)
 }
 
 
-void AWFC::PlacePrototype(const FPrototype& Prototype, FIntVector GridIndex)
+void AWFC::PlacePrototype(int PrototypeIndex, FIntVector GridIndex)
 {
 	//Index the 1D array as a 3D array
 	GridCell* cell = GetCell(GridIndex);
@@ -452,14 +455,18 @@ void AWFC::PlacePrototype(const FPrototype& Prototype, FIntVector GridIndex)
 	FVector NewLocation = FVector(GridIndex.X * CellSize, GridIndex.Y * CellSize, GridIndex.Z * CellSize);
 
 	//Spawn Cell
-	AActor* CellModel = GetWorld()->SpawnActor(Prototype.Tile, &NewLocation);
-	CellModel->SetActorRotation(GetRotation(Prototype.Rotation).Quaternion());	//Get FRotator from prototype rotation then rotate actor
+	AActor* CellModel = GetWorld()->SpawnActor(Prototypes[PrototypeIndex].Tile, &NewLocation);
+	CellModel->SetActorRotation(GetRotation(Prototypes[PrototypeIndex].Rotation).Quaternion());	//Get FRotator from prototype rotation then rotate actor
 
 	//Store spawned actor in grid
 	cell->Tile = StaticCast<ATile*>(CellModel);
 
 	//Setup const pointer to adjacency list in prototype to save space
-	cell->Tile->AdjacencyLists = &Prototype.AdjacencyLists;
+	cell->Tile->AdjacencyLists = &Prototypes[PrototypeIndex].AdjacencyLists;
+
+	//Update possibilities to match the index for the chosen tile
+	cell->Possibilities.Empty();
+	cell->Possibilities.Add(PrototypeIndex);
 
 	//Increment to track collapsed tiles
 	CollapsedTiles++;
@@ -483,7 +490,7 @@ TArray<int> AWFC::GetPossibleNeighbors(int Index, EDirection Direction)
 		}
 	}
 
-	UE_LOG(LogTemp, Display, TEXT("Possibilities - %i"), PossibleNeighbors.Num());
+	/*UE_LOG(LogTemp, Display, TEXT("Possibilities - %i"), PossibleNeighbors.Num());*/
 
 	//Return the set as an array
 	return PossibleNeighbors.Array();
