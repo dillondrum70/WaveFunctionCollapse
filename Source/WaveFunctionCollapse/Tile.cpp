@@ -3,6 +3,17 @@
 
 #include "Tile.h"
 
+
+FAdjacencySide::FAdjacencySide()
+{
+
+}
+
+FAdjacencySides::FAdjacencySides()
+{
+	Sides.SetNum(4);	//Must have 6 entries, one for each side
+}
+
 bool FTileProfile::operator==(const FTileProfile& rhs)
 {
 	return ProfileName == rhs.ProfileName;

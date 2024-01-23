@@ -3,16 +3,6 @@
 
 #include "WFC.h"
 
-FAdjacencySide::FAdjacencySide()
-{
-	
-}
-
-FAdjacencySides::FAdjacencySides()
-{
-	Sides.SetNum(4);	//Must have 6 entries, one for each side
-}
-
 
 FPrototype::FPrototype()
 {
@@ -67,9 +57,15 @@ void AWFC::BeginPlay()
 
 	//Initialize grid with default values, all cells can be any prototype
 	GridCells.Init(DefaultCell, GridDimensions.X * GridDimensions.Y * GridDimensions.Z);
-
+	
 	//Run the Wave Function Collapse algorithm and place tiles
-	RunAlgorithm();
+	//RunAlgorithm();
+	UE_LOG(LogTemp, Display, TEXT("Possibilities - %i"), Prototypes.Num());
+	TArray<int> n = GetPossibleNeighbors(15, EDirection::DIR_NORTH);
+	for (int t : n)
+	{
+		UE_LOG(LogTemp, Display, TEXT("%i"), t);
+	}
 
 	UE_LOG(LogTemp, Display, TEXT("Collapsed: %i   Total: %i"), CollapsedTiles, GridCells.Num());
 
@@ -105,7 +101,7 @@ void AWFC::GeneratePrototypes()
 
 	//////// TEST CODE /////////
 	//Print adjacency lists
-	/*for (FPrototype p : Prototypes)
+	for (FPrototype p : Prototypes)
 	{
 		UE_LOG(LogTemp, Display, TEXT("%s Adjacency Lists"), *p.Name);
 		for (int i = 0; i < p.AdjacencyLists.Sides.Num(); i++)
@@ -116,7 +112,7 @@ void AWFC::GeneratePrototypes()
 				UE_LOG(LogTemp, Display, TEXT("%s"), *Prototypes[index].Name);
 			}
 		}
-	}*/
+	}
 }
 
 
@@ -205,7 +201,7 @@ void AWFC::CreateAdjacencies()
 		ATile* ThisTile = Prototypes[currentIndex].Tile.GetDefaultObject();
 
 		//Iterate over remaining prototypes after currentIndex
-		for (testIndex = currentIndex + 1; testIndex < Prototypes.Num(); testIndex++)
+		for (testIndex = currentIndex; testIndex < Prototypes.Num(); testIndex++)
 		{
 			//Tile of testing prototype
 			ATile* OtherTile = Prototypes[testIndex].Tile.GetDefaultObject();
@@ -217,28 +213,45 @@ void AWFC::CreateAdjacencies()
 			if (!OtherTile) { UE_LOG(LogTemp, Error, TEXT("OtherTiles is Invalid")); return; }
 			
 			//Test adjacent tiles
-			if (ThisTile->TileProfiles[DIR_NORTH] == OtherTile->TileProfiles[GetDirRotated(EDirection::DIR_SOUTH, rot)])
+			if (ThisTile->TileProfiles[DIR_NORTH] == OtherTile->TileProfiles[GetDirRotated(EDirection::DIR_SOUTH, -rot)])
 			{
 				Prototypes[currentIndex].AdjacencyLists.Sides[DIR_NORTH].AdjacencyOptions.Add(testIndex);
-				Prototypes[testIndex].AdjacencyLists.Sides[DIR_SOUTH].AdjacencyOptions.Add(currentIndex);
+
+				//Do not add twice if index is the same
+				if (currentIndex != testIndex)
+				{
+					Prototypes[testIndex].AdjacencyLists.Sides[DIR_SOUTH].AdjacencyOptions.Add(currentIndex);
+				}
 			}
 
-			if (ThisTile->TileProfiles[DIR_EAST] == OtherTile->TileProfiles[GetDirRotated(EDirection::DIR_WEST, rot)])
+			if (ThisTile->TileProfiles[DIR_EAST] == OtherTile->TileProfiles[GetDirRotated(EDirection::DIR_WEST, -rot)])
 			{
 				Prototypes[currentIndex].AdjacencyLists.Sides[DIR_EAST].AdjacencyOptions.Add(testIndex);
-				Prototypes[testIndex].AdjacencyLists.Sides[DIR_WEST].AdjacencyOptions.Add(currentIndex);
+
+				if (currentIndex != testIndex)
+				{
+					Prototypes[testIndex].AdjacencyLists.Sides[DIR_WEST].AdjacencyOptions.Add(currentIndex);
+				}
 			}
 
-			if (ThisTile->TileProfiles[DIR_SOUTH] == OtherTile->TileProfiles[GetDirRotated(EDirection::DIR_NORTH, rot)])
+			if (ThisTile->TileProfiles[DIR_SOUTH] == OtherTile->TileProfiles[GetDirRotated(EDirection::DIR_NORTH, -rot)])
 			{
 				Prototypes[currentIndex].AdjacencyLists.Sides[DIR_SOUTH].AdjacencyOptions.Add(testIndex);
-				Prototypes[testIndex].AdjacencyLists.Sides[DIR_NORTH].AdjacencyOptions.Add(currentIndex);
+
+				if (currentIndex != testIndex)
+				{
+					Prototypes[testIndex].AdjacencyLists.Sides[DIR_NORTH].AdjacencyOptions.Add(currentIndex);
+				}
 			}
 
-			if (ThisTile->TileProfiles[DIR_WEST] == OtherTile->TileProfiles[GetDirRotated(EDirection::DIR_EAST, rot)])
+			if (ThisTile->TileProfiles[DIR_WEST] == OtherTile->TileProfiles[GetDirRotated(EDirection::DIR_EAST, -rot)])
 			{
 				Prototypes[currentIndex].AdjacencyLists.Sides[DIR_WEST].AdjacencyOptions.Add(testIndex);
-				Prototypes[testIndex].AdjacencyLists.Sides[DIR_EAST].AdjacencyOptions.Add(currentIndex);
+
+				if (currentIndex != testIndex)
+				{
+					Prototypes[testIndex].AdjacencyLists.Sides[DIR_EAST].AdjacencyOptions.Add(currentIndex);
+				}
 			}
 		}
 	}
@@ -251,6 +264,9 @@ void AWFC::RunAlgorithm()
 {
 	//Reset collapsed tiles to 0
 	CollapsedTiles = 0;
+
+	//Clear list
+	PropogationIndices = TArray<int>();
 
 	//While not collapsed
 	while (!IsCollapsed())
@@ -278,7 +294,8 @@ void AWFC::IterateAlgorithm()
 	//Collapse the grid cell at the lowest entropy index
 	CollapseCell(index);
 	
-
+	//Propogate changes from collapsed cell
+	PropogateCellChanges(index);
 }
 
 
@@ -340,7 +357,7 @@ void AWFC::CollapseCell(int Index)
 	}
 
 	//Sanity check, ensure there is at least one possibility
-	check(Cell->Possibilities.Num() > 0)
+	 check(Cell->Possibilities.Num() > 0)
 
 	//Default to 0
 	int TileIndex = 0;
@@ -354,6 +371,75 @@ void AWFC::CollapseCell(int Index)
 	//Place the chosen tile
 	int ProIndex = Cell->Possibilities[TileIndex];
 	PlacePrototype(Prototypes[ProIndex], IntToGridIndex(Index));
+}
+
+
+void AWFC::PropogateCellChanges(int Index)
+{
+	//Start the stack
+	PropogationIndices.Add(Index);
+
+	int dir, oth;
+
+	//Until all effects are realized
+	while (PropogationIndices.Num() > 0)
+	{
+		//Store and pop the top index
+		int CurrentIndex = PropogationIndices.Pop();
+
+		//Iterate over adjacent cells
+		for (dir = 0; dir < EDirection::DIR_MAX; dir++)
+		{
+			int OtherIndex = -1;
+			//Get adjacent cell in current direction
+			GridCell* OtherCell = GetAdjacentCell(CurrentIndex, (EDirection)GetDirRotated((EDirection)dir, ERotation::ONE_EIGHTY), OtherIndex);
+
+			//Not a valid direction, could be off the map
+			if (!OtherCell) { continue; }
+			//Ignore if already chosen tile
+			if (OtherCell->Tile) { continue; }
+
+			//Copy possibilities to temp array
+			TArray<int> OtherPossibilities = TArray<int>(OtherCell->Possibilities);
+
+			//Use the adjacency list for this direction to decide which possible prototypes to remove
+			//const FAdjacencySide* AdjList = &GridCells[Index].Tile->AdjacencyLists->Sides[dir];
+
+			//Iterate over prototype options
+			for (oth = 0; oth < OtherPossibilities.Num(); oth++)
+			{
+				//If list of possible adjacent prototypes for current cell doesn't contain a possible prototype in an adjacent cell
+				//if (!AdjList->AdjacencyOptions.Contains(OtherPossibilities[oth]))
+				{
+					//Remove possibility from adjacent cell
+					OtherCell->Possibilities.Remove(OtherPossibilities[oth]);
+
+					//Add to stack if not already in it
+					if (!PropogationIndices.Contains(OtherIndex))
+					{
+						PropogationIndices.Add(OtherIndex);
+					}
+				}
+			}
+
+			//////////////////////////////
+			//FIntVector temp = IntToGridIndex(OtherIndex);
+			//UE_LOG(LogTemp, Display, TEXT("Adjacent (Other) Cell: (%i, %i, %i)   "), temp.X, temp.Y, temp.Z);
+			//for (int i = 0; i < OtherCell->Possibilities.Num(); i++)
+			//{
+			//	UE_LOG(LogTemp, Display, TEXT("Possibility: %i - %s"), OtherCell->Possibilities[i],
+			//		*Prototypes[OtherCell->Possibilities[i]].Name);
+			//}
+			//temp = IntToGridIndex(CurrentIndex);
+			//UE_LOG(LogTemp, Display, TEXT("Current Cell: (%i, %i, %i)   "), temp.X, temp.Y, temp.Z);
+			//for (int i = 0; i < GridCells[CurrentIndex].Possibilities.Num(); i++)
+			//{
+			//	UE_LOG(LogTemp, Display, TEXT("Possibility: %i - %s"), GridCells[CurrentIndex].Possibilities[i],
+			//		*Prototypes[GridCells[CurrentIndex].Possibilities[i]].Name);
+			//}
+			/////////////////////////////////
+		}
+	}
 }
 
 
@@ -372,6 +458,9 @@ void AWFC::PlacePrototype(const FPrototype& Prototype, FIntVector GridIndex)
 	//Store spawned actor in grid
 	cell->Tile = StaticCast<ATile*>(CellModel);
 
+	//Setup const pointer to adjacency list in prototype to save space
+	cell->Tile->AdjacencyLists = &Prototype.AdjacencyLists;
+
 	//Increment to track collapsed tiles
 	CollapsedTiles++;
 
@@ -380,9 +469,30 @@ void AWFC::PlacePrototype(const FPrototype& Prototype, FIntVector GridIndex)
 }
 
 
-inline int AWFC::GetDirRotated(EDirection input, ERotation modifier)
+TArray<int> AWFC::GetPossibleNeighbors(int Index, EDirection Direction)
 {
-	return ((input + EDirection::DIR_MAX) - modifier) % EDirection::DIR_MAX;
+	TSet<int> PossibleNeighbors;
+
+	//For each possibility in the current cell
+	for (int p : GridCells[Index].Possibilities)
+	{
+		//Add each of its possible neighbors in the given direction to the set
+		for (int neighbor : Prototypes[p].AdjacencyLists.Sides[Direction].AdjacencyOptions)
+		{
+			PossibleNeighbors.Add(neighbor);
+		}
+	}
+
+	UE_LOG(LogTemp, Display, TEXT("Possibilities - %i"), PossibleNeighbors.Num());
+
+	//Return the set as an array
+	return PossibleNeighbors.Array();
+}
+
+
+inline int AWFC::GetDirRotated(EDirection input, int modifier)
+{
+	return ((input + EDirection::DIR_MAX) + modifier) % EDirection::DIR_MAX;
 }
 
 
@@ -429,6 +539,62 @@ GridCell* AWFC::GetCell(FIntVector Index)
 	//Index the 1D array using 3D coordinates
 	return &GridCells[SingleIndex];
 }
+
+
+//Get the adjacent grid cell
+GridCell* AWFC::GetAdjacentCell(int Index, EDirection Direction, int& OutAdjacentIndex)
+{
+	FIntVector GridIndex = IntToGridIndex(Index);
+	
+	switch (Direction)
+	{
+	case EDirection::DIR_NORTH:
+		//Calculate adjacent index
+		GridIndex.X += 1;
+
+		//Return cell at that index if in range
+		if (GridIndex.X < GridDimensions.X)
+		{
+			OutAdjacentIndex = GridIndexToInt(GridIndex);
+			return &GridCells[OutAdjacentIndex];
+		}
+		break;
+
+	case EDirection::DIR_SOUTH:
+		GridIndex.X -= 1;
+		if (GridIndex.X >= 0)
+		{
+			OutAdjacentIndex = GridIndexToInt(GridIndex);
+			return &GridCells[OutAdjacentIndex];
+		}
+		break;
+
+	case EDirection::DIR_EAST:
+		GridIndex.Y += 1;
+		if (GridIndex.Y < GridDimensions.Y)
+		{
+			OutAdjacentIndex = GridIndexToInt(GridIndex);
+			return &GridCells[OutAdjacentIndex];
+		}
+		break;
+
+	case EDirection::DIR_WEST:
+		GridIndex.Y -= 1;
+		if (GridIndex.Y >= 0)
+		{
+			OutAdjacentIndex = GridIndexToInt(GridIndex);
+			return &GridCells[OutAdjacentIndex];
+		}
+		break;
+
+	default:
+		UE_LOG(LogTemp, Error, TEXT("Invalid direction passed to AWFC::GetAdjacentCell"));
+	}
+
+	//Return null if invalid index
+	return nullptr;
+}
+
 
 inline int AWFC::GridIndexToInt(FIntVector GridIndex)
 {

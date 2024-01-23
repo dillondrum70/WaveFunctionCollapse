@@ -22,36 +22,6 @@
 //};
 
 
-
-/*
-*	List of integers that are indices in GeneratedPrototypes corresponding to possible adjacent prototypes
-*/
-USTRUCT()
-struct FAdjacencySide
-{
-	GENERATED_BODY()
-
-	FAdjacencySide();
-
-	TArray<int> AdjacencyOptions;
-};
-
-
-/*
-*	Set of 4 FAdjaceencySide structs
-*/
-USTRUCT()
-struct FAdjacencySides
-{
-	GENERATED_BODY()
-
-	//Initialize Sides with 4 elements
-	FAdjacencySides();
-
-	TArray<FAdjacencySide> Sides;
-};
-
-
 /*
 *
 *	Reference to the a tile subclass along with its possible adjacent prototypes
@@ -115,6 +85,8 @@ protected:
 	//How many tiles have been collapsed by WFC
 	int CollapsedTiles;
 
+	TArray<int> PropogationIndices;
+
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
@@ -159,6 +131,12 @@ protected:
 	/// <param name="index">Index to collapse at</param>
 	void CollapseCell(int Index);
 
+	/// <summary>
+	/// Updates other cells to reflect the changes of the current cell
+	/// </summary>
+	/// <param name="Index">Current cell index</param>
+	void PropogateCellChanges(int Index);
+
 	/*
 	*	Helper Functions
 	*/
@@ -174,7 +152,7 @@ protected:
 	/// <param name="input">The direction to rotate</param>
 	/// <param name="modifier">How much to rotate by</param>
 	/// <returns>The new rotated direction expressed as an integer</returns>
-	inline int GetDirRotated(EDirection input, ERotation modifier);
+	inline int GetDirRotated(EDirection input, int modifier);
 
 	/// <summary>
 	/// Convert an ERotation to an FRotator
@@ -195,6 +173,14 @@ protected:
 	/// </summary>
 	/// <returns>Whether or not WFC is done</returns>
 	inline bool IsCollapsed() { return CollapsedTiles >= GridCells.Num(); }
+
+	/// <summary>
+	/// Returns possible neighboring tiles based on the profiles of the indexed tile's Possibilities in that direction
+	/// </summary>
+	/// <param name="Index">Index of the tile to check</param>
+	/// <param name="Direction">Which side of tile to pull profiles from</param>
+	/// <returns>Array if indices in Prototypes that represents all possible neighbors</returns>
+	TArray<int> GetPossibleNeighbors(int Index, EDirection Direction);
 
 public:	
 	// Called every frame
@@ -239,6 +225,14 @@ public:
 	/// <param name="Index">The 3D coordinates of the cell</param>
 	/// <returns>Grid Cell Reference</returns>
 	GridCell* GetCell(FIntVector Index);
+
+	/// <summary>
+	/// Get the cell in the given direction from the given index
+	/// </summary>
+	/// <param name="Index">Current cell</param>
+	/// <param name="Direction">Direction of the adjacent cell</param>
+	/// <returns>Adjacent cell, returns nullptr if on the edge of the grid</returns>
+	GridCell* GetAdjacentCell(int Index, EDirection Direction, int& OutAdjacentIndex);
 
 	/// <summary>
 	/// Convert a 3D index in the grid into a flattened integer for a 1D array representing three dimensions

@@ -24,6 +24,34 @@ enum EDirection
 	DIR_MAX = 4
 };
 
+/*
+*	List of integers that are indices in GeneratedPrototypes corresponding to possible adjacent prototypes
+*/
+USTRUCT()
+struct FAdjacencySide
+{
+	GENERATED_BODY()
+
+	FAdjacencySide();
+
+	TArray<int> AdjacencyOptions;
+};
+
+
+/*
+*	Set of 4 FAdjaceencySide structs
+*/
+USTRUCT()
+struct FAdjacencySides
+{
+	GENERATED_BODY()
+
+	//Initialize Sides with 4 elements
+	FAdjacencySides();
+
+	TArray<FAdjacencySide> Sides;
+};
+
 USTRUCT()
 struct FTileProfile
 {
@@ -50,6 +78,10 @@ public:
 
 	UPROPERTY(EditDefaultsOnly)
 	TArray<FTileProfile> TileProfiles;
+
+	//Points to the adjacency lists for each side at runtime after the tile is spawned
+	//The adjacency lists exist in the AWFC::Prototypes array.  No reason to store duplicate copies of the same array if they exist elsewhere
+	const FAdjacencySides* AdjacencyLists;
 		 
 protected:
 	// Called when the game starts or when spawned
