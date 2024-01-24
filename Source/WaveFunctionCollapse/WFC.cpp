@@ -41,69 +41,6 @@ AWFC::AWFC()
 void AWFC::BeginPlay()
 {
 	Super::BeginPlay();
-
-	int dir10 = GetDirRotated(EDirection::DIR_NORTH, ERotation::ZERO);
-	int dir20 = GetDirRotated(EDirection::DIR_EAST, ERotation::ZERO);
-	int dir30 = GetDirRotated(EDirection::DIR_SOUTH, ERotation::ZERO);
-	int dir40 = GetDirRotated(EDirection::DIR_WEST, ERotation::ZERO);
-
-	int dir11 = GetDirRotated(EDirection::DIR_NORTH, ERotation::NINETY);
-	int dir21 = GetDirRotated(EDirection::DIR_EAST, ERotation::NINETY);
-	int dir31 = GetDirRotated(EDirection::DIR_SOUTH, ERotation::NINETY);
-	int dir41 = GetDirRotated(EDirection::DIR_WEST, ERotation::NINETY);
-
-	int dir12 = GetDirRotated(EDirection::DIR_NORTH, ERotation::ONE_EIGHTY);
-	int dir22 = GetDirRotated(EDirection::DIR_EAST, ERotation::ONE_EIGHTY);
-	int dir32 = GetDirRotated(EDirection::DIR_SOUTH, ERotation::ONE_EIGHTY);
-	int dir42 = GetDirRotated(EDirection::DIR_WEST, ERotation::ONE_EIGHTY);
-
-	int dir13 = GetDirRotated(EDirection::DIR_NORTH, ERotation::TWO_SEVENTY);
-	int dir23 = GetDirRotated(EDirection::DIR_EAST, ERotation::TWO_SEVENTY);
-	int dir33 = GetDirRotated(EDirection::DIR_SOUTH, ERotation::TWO_SEVENTY);
-	int dir43 = GetDirRotated(EDirection::DIR_WEST, ERotation::TWO_SEVENTY);
-
-	FString text;
-	text.AppendInt((int)EDirection::DIR_NORTH);
-	text += " ";
-	text.AppendInt((int)EDirection::DIR_EAST);
-	text += " ";
-	text.AppendInt((int)EDirection::DIR_SOUTH);
-	text += " ";
-	text.AppendInt((int)EDirection::DIR_WEST);
-	text += "\n";
-	text.AppendInt(dir10);
-	text += " ";
-	text.AppendInt(dir20);
-	text += " ";
-	text.AppendInt(dir30);
-	text += " ";
-	text.AppendInt(dir40);
-	text += "\n";
-	text.AppendInt(dir11);
-	text += " ";
-	text.AppendInt(dir21);
-	text += " ";
-	text.AppendInt(dir31);
-	text += " ";
-	text.AppendInt(dir41);
-	text += "\n";
-	text.AppendInt(dir12);
-	text += " ";
-	text.AppendInt(dir22);
-	text += " ";
-	text.AppendInt(dir32);
-	text += " ";
-	text.AppendInt(dir42);
-	text += "\n";
-	text.AppendInt(dir13);
-	text += " ";
-	text.AppendInt(dir23);
-	text += " ";
-	text.AppendInt(dir33);
-	text += " ";
-	text.AppendInt(dir43);
-	text += "\n";
-	UE_LOG(LogTemp, Display, TEXT("%s"), *text);
 	
 	//Preprocessing step, setting up for algorithm
 	GeneratePrototypes();
@@ -166,26 +103,26 @@ void AWFC::GeneratePrototypes()
 
 	//////// TEST CODE /////////
 	//Print adjacency lists
-	FString text;
-	for (FPrototype p : Prototypes)
-	{
-		text = "\nPrototype Name: " + p.Name + "\n";
+	//FString text;
+	//for (FPrototype p : Prototypes)
+	//{
+	//	text = "\nPrototype Name: " + p.Name + "\n";
 
-		//UE_LOG(LogTemp, Display, TEXT("%s Adjacency Lists"), *p.Name);
-		for (int i = 0; i < p.AdjacencyLists.Sides.Num(); i++)
-		{
-			//UE_LOG(LogTemp, Display, TEXT("%s Side"), *UEnum::GetValueAsString((EDirection)i));
-			text += "\n" + UEnum::GetValueAsString((EDirection)i) + " -\n";
-			for (int index : p.AdjacencyLists.Sides[i].AdjacencyOptions)
-			{
-				//UE_LOG(LogTemp, Display, TEXT("%s"), *Prototypes[index].Name);
-				text += "\t" + Prototypes[index].Name + "\n";
-			}
-			text += "\n";
-		}
-		text += "\n\n";
-		UE_LOG(LogTemp, Display, TEXT("%s"), *text);
-	}
+	//	//UE_LOG(LogTemp, Display, TEXT("%s Adjacency Lists"), *p.Name);
+	//	for (int i = 0; i < p.AdjacencyLists.Sides.Num(); i++)
+	//	{
+	//		//UE_LOG(LogTemp, Display, TEXT("%s Side"), *UEnum::GetValueAsString((EDirection)i));
+	//		text += "\n" + UEnum::GetValueAsString((EDirection)i) + " -\n";
+	//		for (int index : p.AdjacencyLists.Sides[i].AdjacencyOptions)
+	//		{
+	//			//UE_LOG(LogTemp, Display, TEXT("%s"), *Prototypes[index].Name);
+	//			text += "\t" + Prototypes[index].Name + "\n";
+	//		}
+	//		text += "\n";
+	//	}
+	//	text += "\n\n";
+	//	UE_LOG(LogTemp, Display, TEXT("%s"), *text);
+	//}
 	
 }
 
@@ -477,7 +414,8 @@ void AWFC::PropogateCellChanges(int Index)
 		{
 			int OtherIndex = -1;
 			//Get adjacent cell in current direction
-			GridCell* OtherCell = GetAdjacentCell(CurrentIndex, (EDirection)GetDirRotated((EDirection)dir, ERotation::ONE_EIGHTY), OtherIndex);
+			GridCell* OtherCell = GetAdjacentCell(CurrentIndex, (EDirection)dir, OtherIndex);
+			//(EDirection)GetDirRotated((EDirection)dir, ERotation::ONE_EIGHTY)
 
 			//Not a valid direction, could be off the map
 			if (!OtherCell) { continue; }
@@ -535,7 +473,7 @@ void AWFC::PlacePrototype(int PrototypeIndex, FIntVector GridIndex)
 	GridCell* cell = GetCell(GridIndex);
 
 	//Calculate cell location
-	FVector NewLocation = FVector(GridIndex.X * CellSize, GridIndex.Y * CellSize, GridIndex.Z * CellSize);
+	FVector NewLocation = GetActorLocation() + FVector(GridIndex.X * CellSize, GridIndex.Y * CellSize, GridIndex.Z * CellSize);
 
 	//Spawn Cell
 	AActor* CellModel = GetWorld()->SpawnActor(Prototypes[PrototypeIndex].Tile, &NewLocation);
@@ -554,8 +492,23 @@ void AWFC::PlacePrototype(int PrototypeIndex, FIntVector GridIndex)
 	//Increment to track collapsed tiles
 	CollapsedTiles++;
 
-	UE_LOG(LogTemp, Display, TEXT("Collapsed: %i   Index: (%i, %i, %i)   Tile Name: %s"), 
-		CollapsedTiles, GridIndex.X, GridIndex.Y, GridIndex.Z, *cell->Tile->Name)
+	for (int i = 0; i < EDirection::DIR_MAX; i++)
+	{
+		int otherIndex = -1;
+		GridCell* otherCell = GetAdjacentCell(GridIndexToInt(GridIndex), (EDirection)i, otherIndex);
+
+		if (!otherCell || !otherCell->Tile) { continue; }
+
+		FIntVector otherGrid = IntToGridIndex(otherIndex);
+
+		UE_LOG(LogTemp, Display, TEXT("Direction: %s   Adjacent Name: %s   Grid Location: (%i, %i, %i)   "),
+			*UEnum::GetValueAsString((EDirection)i),
+			*Prototypes[otherCell->Possibilities[0]].Name,
+			otherGrid.X, otherGrid.Y, otherGrid.Z);
+	}
+
+	UE_LOG(LogTemp, Display, TEXT("Collapsed: %i   Index: (%i, %i, %i)   Prototype Name: %s"), 
+		CollapsedTiles, GridIndex.X, GridIndex.Y, GridIndex.Z, *Prototypes[cell->Possibilities[0]].Name)
 }
 
 
@@ -603,6 +556,7 @@ FRotator AWFC::GetRotation(ERotation Rotation)
 		return FRotator(0, 270, 0);
 		break;
 	default:
+		UE_LOG(LogTemp, Error, TEXT("Invalid ERotation passed to AWFC::GetRotation: %i"), Rotation);
 		return FRotator(0, 0, 0);
 	}
 }
