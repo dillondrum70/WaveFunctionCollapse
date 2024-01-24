@@ -41,6 +41,69 @@ AWFC::AWFC()
 void AWFC::BeginPlay()
 {
 	Super::BeginPlay();
+
+	int dir10 = GetDirRotated(EDirection::DIR_NORTH, ERotation::ZERO);
+	int dir20 = GetDirRotated(EDirection::DIR_EAST, ERotation::ZERO);
+	int dir30 = GetDirRotated(EDirection::DIR_SOUTH, ERotation::ZERO);
+	int dir40 = GetDirRotated(EDirection::DIR_WEST, ERotation::ZERO);
+
+	int dir11 = GetDirRotated(EDirection::DIR_NORTH, ERotation::NINETY);
+	int dir21 = GetDirRotated(EDirection::DIR_EAST, ERotation::NINETY);
+	int dir31 = GetDirRotated(EDirection::DIR_SOUTH, ERotation::NINETY);
+	int dir41 = GetDirRotated(EDirection::DIR_WEST, ERotation::NINETY);
+
+	int dir12 = GetDirRotated(EDirection::DIR_NORTH, ERotation::ONE_EIGHTY);
+	int dir22 = GetDirRotated(EDirection::DIR_EAST, ERotation::ONE_EIGHTY);
+	int dir32 = GetDirRotated(EDirection::DIR_SOUTH, ERotation::ONE_EIGHTY);
+	int dir42 = GetDirRotated(EDirection::DIR_WEST, ERotation::ONE_EIGHTY);
+
+	int dir13 = GetDirRotated(EDirection::DIR_NORTH, ERotation::TWO_SEVENTY);
+	int dir23 = GetDirRotated(EDirection::DIR_EAST, ERotation::TWO_SEVENTY);
+	int dir33 = GetDirRotated(EDirection::DIR_SOUTH, ERotation::TWO_SEVENTY);
+	int dir43 = GetDirRotated(EDirection::DIR_WEST, ERotation::TWO_SEVENTY);
+
+	FString text;
+	text.AppendInt((int)EDirection::DIR_NORTH);
+	text += " ";
+	text.AppendInt((int)EDirection::DIR_EAST);
+	text += " ";
+	text.AppendInt((int)EDirection::DIR_SOUTH);
+	text += " ";
+	text.AppendInt((int)EDirection::DIR_WEST);
+	text += "\n";
+	text.AppendInt(dir10);
+	text += " ";
+	text.AppendInt(dir20);
+	text += " ";
+	text.AppendInt(dir30);
+	text += " ";
+	text.AppendInt(dir40);
+	text += "\n";
+	text.AppendInt(dir11);
+	text += " ";
+	text.AppendInt(dir21);
+	text += " ";
+	text.AppendInt(dir31);
+	text += " ";
+	text.AppendInt(dir41);
+	text += "\n";
+	text.AppendInt(dir12);
+	text += " ";
+	text.AppendInt(dir22);
+	text += " ";
+	text.AppendInt(dir32);
+	text += " ";
+	text.AppendInt(dir42);
+	text += "\n";
+	text.AppendInt(dir13);
+	text += " ";
+	text.AppendInt(dir23);
+	text += " ";
+	text.AppendInt(dir33);
+	text += " ";
+	text.AppendInt(dir43);
+	text += "\n";
+	UE_LOG(LogTemp, Display, TEXT("%s"), *text);
 	
 	//Preprocessing step, setting up for algorithm
 	GeneratePrototypes();
@@ -103,18 +166,27 @@ void AWFC::GeneratePrototypes()
 
 	//////// TEST CODE /////////
 	//Print adjacency lists
-	/*for (FPrototype p : Prototypes)
+	FString text;
+	for (FPrototype p : Prototypes)
 	{
-		UE_LOG(LogTemp, Display, TEXT("%s Adjacency Lists"), *p.Name);
+		text = "\nPrototype Name: " + p.Name + "\n";
+
+		//UE_LOG(LogTemp, Display, TEXT("%s Adjacency Lists"), *p.Name);
 		for (int i = 0; i < p.AdjacencyLists.Sides.Num(); i++)
 		{
-			UE_LOG(LogTemp, Display, TEXT("%s Side"), *UEnum::GetValueAsString((EDirection)i));
+			//UE_LOG(LogTemp, Display, TEXT("%s Side"), *UEnum::GetValueAsString((EDirection)i));
+			text += "\n" + UEnum::GetValueAsString((EDirection)i) + " -\n";
 			for (int index : p.AdjacencyLists.Sides[i].AdjacencyOptions)
 			{
-				UE_LOG(LogTemp, Display, TEXT("%s"), *Prototypes[index].Name);
+				//UE_LOG(LogTemp, Display, TEXT("%s"), *Prototypes[index].Name);
+				text += "\t" + Prototypes[index].Name + "\n";
 			}
+			text += "\n";
 		}
-	}*/
+		text += "\n\n";
+		UE_LOG(LogTemp, Display, TEXT("%s"), *text);
+	}
+	
 }
 
 
@@ -126,20 +198,20 @@ void AWFC::InitializePrototypes()
 
 		if (!DefaultTile) { UE_LOG(LogTemp, Error, TEXT("DefaultTile is Invalid.  WFC::InitializePrototypes()")); }
 
-		bool opposite1Symmetric = (DefaultTile->TileProfiles[0].ProfileName == DefaultTile->TileProfiles[2].ProfileName);	// Check opposite profiles match
-		bool opposite2Symmetric = (DefaultTile->TileProfiles[1].ProfileName == DefaultTile->TileProfiles[3].ProfileName); // Check other opposite profiles match
+		bool opposite1Match = (DefaultTile->TileProfiles[0].ProfileName == DefaultTile->TileProfiles[2].ProfileName);	// Check opposite profiles match
+		bool opposite2Match = (DefaultTile->TileProfiles[1].ProfileName == DefaultTile->TileProfiles[3].ProfileName); // Check other opposite profiles match
 
-		bool adjacentSymmetric = (DefaultTile->TileProfiles[0].ProfileName == DefaultTile->TileProfiles[1].ProfileName); // Check if 
+		bool adjacentMatch = (DefaultTile->TileProfiles[0].ProfileName == DefaultTile->TileProfiles[1].ProfileName); // Check if 
 
 		//Fully symmetric, create 1 prototype
-		if (opposite1Symmetric && opposite2Symmetric && adjacentSymmetric)
+		if (opposite1Match && opposite2Match && adjacentMatch)
 		{
 			FPrototype p1;
 			p1.Init(tile, ERotation::ZERO);
 
 			Prototypes.Add(p1);
 		}
-		else if (opposite1Symmetric && opposite2Symmetric) //Half symmetric, create 2 prototypes
+		else if (opposite1Match && opposite2Match) //Half symmetric, create 2 prototypes
 		{
 			FPrototype p1;
 			p1.Init(tile, ERotation::ZERO);
@@ -201,6 +273,7 @@ void AWFC::CreateAdjacencies()
 	for (currentIndex = 0; currentIndex < Prototypes.Num(); currentIndex++)
 	{
 		ATile* ThisTile = Prototypes[currentIndex].Tile.GetDefaultObject();
+		ERotation ThisRot = Prototypes[currentIndex].Rotation;
 
 		//Iterate over remaining prototypes after currentIndex
 		for (testIndex = currentIndex; testIndex < Prototypes.Num(); testIndex++)
@@ -209,13 +282,15 @@ void AWFC::CreateAdjacencies()
 			ATile* OtherTile = Prototypes[testIndex].Tile.GetDefaultObject();
 
 			//Rotation of the testing prototype
-			ERotation rot = Prototypes[testIndex].Rotation;
+			ERotation TestRot = Prototypes[testIndex].Rotation;
 
 			if (!ThisTile) { UE_LOG(LogTemp, Error, TEXT("ThisTile is Invalid")); return; }
 			if (!OtherTile) { UE_LOG(LogTemp, Error, TEXT("OtherTiles is Invalid")); return; }
 			
 			//Test adjacent tiles
-			if (ThisTile->TileProfiles[DIR_NORTH] == OtherTile->TileProfiles[GetDirRotated(EDirection::DIR_SOUTH, -rot)])
+			int ThisDir = GetDirRotated(EDirection::DIR_NORTH, ThisRot);
+			int TestDir = GetDirRotated(EDirection::DIR_SOUTH, TestRot);
+			if (CompareProfiles(ThisTile->TileProfiles[ThisDir], OtherTile->TileProfiles[TestDir]))
 			{
 				Prototypes[currentIndex].AdjacencyLists.Sides[DIR_NORTH].AdjacencyOptions.Add(testIndex);
 
@@ -226,7 +301,9 @@ void AWFC::CreateAdjacencies()
 				}
 			}
 
-			if (ThisTile->TileProfiles[DIR_EAST] == OtherTile->TileProfiles[GetDirRotated(EDirection::DIR_WEST, -rot)])
+			ThisDir = GetDirRotated(EDirection::DIR_EAST, ThisRot);
+			TestDir = GetDirRotated(EDirection::DIR_WEST, TestRot);
+			if (CompareProfiles(ThisTile->TileProfiles[ThisDir], OtherTile->TileProfiles[TestDir]))
 			{
 				Prototypes[currentIndex].AdjacencyLists.Sides[DIR_EAST].AdjacencyOptions.Add(testIndex);
 
@@ -236,7 +313,9 @@ void AWFC::CreateAdjacencies()
 				}
 			}
 
-			if (ThisTile->TileProfiles[DIR_SOUTH] == OtherTile->TileProfiles[GetDirRotated(EDirection::DIR_NORTH, -rot)])
+			ThisDir = GetDirRotated(EDirection::DIR_SOUTH, ThisRot);
+			TestDir = GetDirRotated(EDirection::DIR_NORTH, TestRot);
+			if (CompareProfiles(ThisTile->TileProfiles[ThisDir], OtherTile->TileProfiles[TestDir]))
 			{
 				Prototypes[currentIndex].AdjacencyLists.Sides[DIR_SOUTH].AdjacencyOptions.Add(testIndex);
 
@@ -246,7 +325,9 @@ void AWFC::CreateAdjacencies()
 				}
 			}
 
-			if (ThisTile->TileProfiles[DIR_WEST] == OtherTile->TileProfiles[GetDirRotated(EDirection::DIR_EAST, -rot)])
+			ThisDir = GetDirRotated(EDirection::DIR_WEST, ThisRot);
+			TestDir = GetDirRotated(EDirection::DIR_EAST, TestRot);
+			if (CompareProfiles(ThisTile->TileProfiles[ThisDir], OtherTile->TileProfiles[TestDir]))
 			{
 				Prototypes[currentIndex].AdjacencyLists.Sides[DIR_WEST].AdjacencyOptions.Add(testIndex);
 
@@ -342,6 +423,8 @@ int AWFC::FindLowestEntropy()
 	{
 		RandIndex = FMath::RandRange(0, Indices.Num() - 1);
 	}
+
+	UE_LOG(LogTemp, Display, TEXT("Lowest Entropy (%i / %i) with %i possibilities"), RandIndex, Indices.Num(), LowestPossible);
 
 	return Indices[RandIndex];
 }
@@ -499,7 +582,7 @@ TArray<int> AWFC::GetPossibleNeighbors(int Index, EDirection Direction)
 
 inline int AWFC::GetDirRotated(EDirection input, int modifier)
 {
-	return ((input + EDirection::DIR_MAX) + modifier) % EDirection::DIR_MAX;
+	return ((input + EDirection::DIR_MAX) - modifier) % EDirection::DIR_MAX;
 }
 
 
@@ -621,4 +704,29 @@ FIntVector AWFC::IntToGridIndex(int Index)
 	GridIndex.X = Index;
 
 	return GridIndex;
+}
+
+bool AWFC::CompareProfiles(const FTileProfile& lhs, const FTileProfile& rhs) const
+{
+	bool Symmetric = lhs.ProfileName.EndsWith("s");
+
+	//Return true if symmetric and profiles match
+	if (Symmetric)
+	{
+		return lhs.ProfileName == rhs.ProfileName;
+	}
+	
+	//Profiles are mirrored if they end with f
+	bool LeftMirror = lhs.ProfileName.EndsWith("f");
+	bool RightMirror = rhs.ProfileName.EndsWith("f");
+
+	//If both profiles are mirrored or not, they can not match
+	if (LeftMirror == RightMirror)
+	{
+		return false;
+	}
+
+	//Remove the 'f' character and check if profiles match beyond that
+	return (LeftMirror ? lhs.ProfileName.LeftChop(1) : lhs.ProfileName) ==
+			(RightMirror ? rhs.ProfileName.LeftChop(1) : rhs.ProfileName);
 }

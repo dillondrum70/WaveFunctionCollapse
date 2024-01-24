@@ -247,4 +247,12 @@ public:
 	/// <param name="Index">Index to convert</param>
 	/// <returns>FIntVector conversion</returns>
 	FIntVector IntToGridIndex(int Index);
+
+	/// <summary>
+	/// Checks if profiles can be adjacent, uses specific rules such as the fact that certain tiles must be mirrored profiles of each other to be adjacent.
+	/// </summary>
+	/// <param name="lhs"></param>
+	/// <param name="rhs"></param>
+	/// <returns>Whether or not the profiles can be adjacent</returns>
+	bool CompareProfiles(const FTileProfile& lhs, const FTileProfile& rhs) const;
 };
