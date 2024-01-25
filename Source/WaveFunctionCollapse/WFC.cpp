@@ -42,7 +42,7 @@ void AWFC::BeginPlay()
 {
 	Super::BeginPlay();
 
-	FString text = "";
+	/*FString text = "";
 
 	FTileProfile profile;
 	profile.ProfileName = "v0s";
@@ -109,7 +109,7 @@ void AWFC::BeginPlay()
 	profile.ProfileName = "v1_1p";
 	text += profile.ProfileName + " Rotated 270: " + GetRotatedVerticalProfile(profile, ERotation::TWO_SEVENTY) + "\n\n";
 
-	UE_LOG(LogTemp, Display, TEXT("%s"), *text);
+	UE_LOG(LogTemp, Display, TEXT("%s"), *text);*/
 
 	
 	//Preprocessing step, setting up for algorithm
@@ -344,8 +344,8 @@ void AWFC::CreateAdjacencies()
 				}
 			}
 
-			FString ThisProfile = GetRotatedVerticalProfile(ThisTile->TileProfiles[ThisDir], ThisRot);
-			FString TestProfile = GetRotatedVerticalProfile(OtherTile->TileProfiles[TestDir], TestRot);
+			FString ThisProfile = GetRotatedVerticalProfile(ThisTile->TileProfiles[DIR_UP], ThisRot);
+			FString TestProfile = GetRotatedVerticalProfile(OtherTile->TileProfiles[DIR_DOWN], TestRot);
 			if (CompareProfiles(ThisProfile, TestProfile, true))
 			{
 				Prototypes[currentIndex].AdjacencyLists.Sides[DIR_UP].AdjacencyOptions.Add(testIndex);
@@ -356,8 +356,8 @@ void AWFC::CreateAdjacencies()
 				}
 			}
 
-			ThisProfile = GetRotatedVerticalProfile(ThisTile->TileProfiles[ThisDir], ThisRot);
-			TestProfile = GetRotatedVerticalProfile(OtherTile->TileProfiles[TestDir], TestRot);
+			ThisProfile = GetRotatedVerticalProfile(ThisTile->TileProfiles[DIR_DOWN], ThisRot);
+			TestProfile = GetRotatedVerticalProfile(OtherTile->TileProfiles[DIR_UP], TestRot);
 			if (CompareProfiles(ThisProfile, TestProfile, true))
 			{
 				Prototypes[currentIndex].AdjacencyLists.Sides[DIR_DOWN].AdjacencyOptions.Add(testIndex);
@@ -403,7 +403,10 @@ void AWFC::IterateAlgorithm()
 	int index = FindLowestEntropy();
 
 	//Failed to find lowest entropy, exit early
-	if (index < 0) { return; }
+	if (index < 0 || index >= GridCells.Num()) { 
+		UE_LOG(LogTemp, Error, TEXT("Failed to find lowest entropy cell"));
+		return; 
+	}
 
 	//Collapse the grid cell at the lowest entropy index
 	CollapseCell(index);
@@ -476,9 +479,9 @@ void AWFC::CollapseCell(int Index)
 	 //check(Cell->Possibilities.Num() > 0)
 
 	//Non-fatal erroring for sanity check, easier debugging
-	if (Cell->Possibilities.Num() > 0)
+	if (Cell->Possibilities.Num() <= 0)
 	{
-		FIntVector GridInd = IntToGridIndex(0);
+		FIntVector GridInd = IntToGridIndex(Index);
 		UE_LOG(LogTemp, Error, TEXT("No Possibilities in cell (%i, %i, %i)"), GridInd.X, GridInd.Y, GridInd.Z);
 		PlacePrototype(0, GridInd);
 		return;
@@ -839,9 +842,6 @@ FString AWFC::GetRotatedVerticalProfile(const FTileProfile& Profile, ERotation R
 		return Profile.ProfileName;
 	}
 
-	//Store the rotation of the current profile
-	int CurrentRotation = Profile.ProfileName[Profile.ProfileName.Len() - 1];
-
 	/*
 	*		i.e. rotatign a diagonally symmetric tile
 	*
@@ -856,6 +856,9 @@ FString AWFC::GetRotatedVerticalProfile(const FTileProfile& Profile, ERotation R
 	//Max unique rotated profiles
 	int RotMax = 4; //Typically different at 0, 90, 180, and 270 unless there is symmetry like a diagonal tile
 
+	//Store the rotation of the current profile
+	int CurrentRotation = 0;
+
 	//Diagonal Symmetry
 	bool PartiallySymmetric = Profile.ProfileName.EndsWith("p");
 	FString BaseProfile = "";
@@ -864,13 +867,21 @@ FString AWFC::GetRotatedVerticalProfile(const FTileProfile& Profile, ERotation R
 	{
 		RotMax = 2;
 
+		//Skip "p" and read second to last character
+		CurrentRotation = FCString::Atoi(&Profile.ProfileName[Profile.ProfileName.Len() - 2]);
+
 		//Remove "_#p"
-		BaseProfile = Profile.ProfileName.LeftChop(Profile.ProfileName.Len() - 3);
+		BaseProfile = Profile.ProfileName.LeftChop(3);
 	}
 	else
 	{
+		//Read last character
+		CurrentRotation = FCString::Atoi(&Profile.ProfileName[Profile.ProfileName.Len() - 1]);
+
 		//Remove "_#"
-		BaseProfile = Profile.ProfileName.LeftChop(Profile.ProfileName.Len() - 2);
+		BaseProfile = Profile.ProfileName.LeftChop(2);
+
+		//UE_LOG(LogTemp, Warning, TEXT("Original: %s    Current Rotation: %i     Base: %s"), *Profile.ProfileName, CurrentRotation, *BaseProfile);
 	}
 
 	//Calculate new rotation

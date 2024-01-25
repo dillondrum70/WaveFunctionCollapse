@@ -121,7 +121,7 @@ protected:
 	/// <summary>
 	/// Find the lowest entropy cells
 	/// </summary>
-	/// <param name="Index">Out parameter of the indices in grid that have lowest entropy</param>
+	/// <param name="Index">Out parameter of the integer format of an index in grid that have lowest entropy</param>
 	int FindLowestEntropy();
 
 	/// <summary>
