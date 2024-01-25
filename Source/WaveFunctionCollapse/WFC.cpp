@@ -227,7 +227,7 @@ void AWFC::CreateAdjacencies()
 			//Test adjacent tiles
 			int ThisDir = GetDirRotated(EDirection::DIR_NORTH, ThisRot);
 			int TestDir = GetDirRotated(EDirection::DIR_SOUTH, TestRot);
-			if (CompareProfiles(ThisTile->TileProfiles[ThisDir], OtherTile->TileProfiles[TestDir]))
+			if (CompareProfiles(ThisTile->TileProfiles[ThisDir].ProfileName, OtherTile->TileProfiles[TestDir].ProfileName, false))
 			{
 				Prototypes[currentIndex].AdjacencyLists.Sides[DIR_NORTH].AdjacencyOptions.Add(testIndex);
 
@@ -240,7 +240,7 @@ void AWFC::CreateAdjacencies()
 
 			ThisDir = GetDirRotated(EDirection::DIR_EAST, ThisRot);
 			TestDir = GetDirRotated(EDirection::DIR_WEST, TestRot);
-			if (CompareProfiles(ThisTile->TileProfiles[ThisDir], OtherTile->TileProfiles[TestDir]))
+			if (CompareProfiles(ThisTile->TileProfiles[ThisDir].ProfileName, OtherTile->TileProfiles[TestDir].ProfileName, false))
 			{
 				Prototypes[currentIndex].AdjacencyLists.Sides[DIR_EAST].AdjacencyOptions.Add(testIndex);
 
@@ -252,7 +252,7 @@ void AWFC::CreateAdjacencies()
 
 			ThisDir = GetDirRotated(EDirection::DIR_SOUTH, ThisRot);
 			TestDir = GetDirRotated(EDirection::DIR_NORTH, TestRot);
-			if (CompareProfiles(ThisTile->TileProfiles[ThisDir], OtherTile->TileProfiles[TestDir]))
+			if (CompareProfiles(ThisTile->TileProfiles[ThisDir].ProfileName, OtherTile->TileProfiles[TestDir].ProfileName, false))
 			{
 				Prototypes[currentIndex].AdjacencyLists.Sides[DIR_SOUTH].AdjacencyOptions.Add(testIndex);
 
@@ -264,13 +264,37 @@ void AWFC::CreateAdjacencies()
 
 			ThisDir = GetDirRotated(EDirection::DIR_WEST, ThisRot);
 			TestDir = GetDirRotated(EDirection::DIR_EAST, TestRot);
-			if (CompareProfiles(ThisTile->TileProfiles[ThisDir], OtherTile->TileProfiles[TestDir]))
+			if (CompareProfiles(ThisTile->TileProfiles[ThisDir].ProfileName, OtherTile->TileProfiles[TestDir].ProfileName, false))
 			{
 				Prototypes[currentIndex].AdjacencyLists.Sides[DIR_WEST].AdjacencyOptions.Add(testIndex);
 
 				if (currentIndex != testIndex)
 				{
 					Prototypes[testIndex].AdjacencyLists.Sides[DIR_EAST].AdjacencyOptions.Add(currentIndex);
+				}
+			}
+
+			FString ThisProfile = GetRotatedVerticalProfile(ThisTile->TileProfiles[ThisDir], ThisRot);
+			FString TestProfile = GetRotatedVerticalProfile(OtherTile->TileProfiles[TestDir], TestRot);
+			if (CompareProfiles(ThisProfile, TestProfile, true))
+			{
+				Prototypes[currentIndex].AdjacencyLists.Sides[DIR_UP].AdjacencyOptions.Add(testIndex);
+
+				if (currentIndex != testIndex)
+				{
+					Prototypes[testIndex].AdjacencyLists.Sides[DIR_DOWN].AdjacencyOptions.Add(currentIndex);
+				}
+			}
+
+			ThisProfile = GetRotatedVerticalProfile(ThisTile->TileProfiles[ThisDir], ThisRot);
+			TestProfile = GetRotatedVerticalProfile(OtherTile->TileProfiles[TestDir], TestRot);
+			if (CompareProfiles(ThisProfile, TestProfile, true))
+			{
+				Prototypes[currentIndex].AdjacencyLists.Sides[DIR_DOWN].AdjacencyOptions.Add(testIndex);
+
+				if (currentIndex != testIndex)
+				{
+					Prototypes[testIndex].AdjacencyLists.Sides[DIR_UP].AdjacencyOptions.Add(currentIndex);
 				}
 			}
 		}
@@ -492,7 +516,8 @@ void AWFC::PlacePrototype(int PrototypeIndex, FIntVector GridIndex)
 	//Increment to track collapsed tiles
 	CollapsedTiles++;
 
-	for (int i = 0; i < EDirection::DIR_MAX; i++)
+	//////// Log Code /////////
+	/*for (int i = 0; i < EDirection::DIR_MAX; i++)
 	{
 		int otherIndex = -1;
 		GridCell* otherCell = GetAdjacentCell(GridIndexToInt(GridIndex), (EDirection)i, otherIndex);
@@ -505,7 +530,7 @@ void AWFC::PlacePrototype(int PrototypeIndex, FIntVector GridIndex)
 			*UEnum::GetValueAsString((EDirection)i),
 			*Prototypes[otherCell->Possibilities[0]].Name,
 			otherGrid.X, otherGrid.Y, otherGrid.Z);
-	}
+	}*/
 
 	UE_LOG(LogTemp, Display, TEXT("Collapsed: %i   Index: (%i, %i, %i)   Prototype Name: %s"), 
 		CollapsedTiles, GridIndex.X, GridIndex.Y, GridIndex.Z, *Prototypes[cell->Possibilities[0]].Name)
@@ -533,9 +558,20 @@ TArray<int> AWFC::GetPossibleNeighbors(int Index, EDirection Direction)
 }
 
 
-inline int AWFC::GetDirRotated(EDirection input, int modifier)
+int AWFC::GetDirRotated(EDirection input, int modifier)
 {
-	return ((input + EDirection::DIR_MAX) - modifier) % EDirection::DIR_MAX;
+	if (input == EDirection::DIR_UP || input == EDirection::DIR_DOWN)
+	{
+		return input;
+	}
+
+	return ((input + 4) - modifier) % 4;
+}
+
+
+int AWFC::GetRotatedRotation(ERotation input, ERotation modifier, int RotMax = 4)
+{
+	return ((input + RotMax) - modifier) % RotMax;
 }
 
 
@@ -631,6 +667,24 @@ GridCell* AWFC::GetAdjacentCell(int Index, EDirection Direction, int& OutAdjacen
 		}
 		break;
 
+	case EDirection::DIR_UP:
+		GridIndex.Z += 1;
+		if (GridIndex.Z < GridDimensions.Z)
+		{
+			OutAdjacentIndex = GridIndexToInt(GridIndex);
+			return &GridCells[OutAdjacentIndex];
+		}
+		break;
+
+	case EDirection::DIR_DOWN:
+		GridIndex.Z -= 1;
+		if (GridIndex.Z >= 0)
+		{
+			OutAdjacentIndex = GridIndexToInt(GridIndex);
+			return &GridCells[OutAdjacentIndex];
+		}
+		break;
+
 	default:
 		UE_LOG(LogTemp, Error, TEXT("Invalid direction passed to AWFC::GetAdjacentCell"));
 	}
@@ -660,19 +714,27 @@ FIntVector AWFC::IntToGridIndex(int Index)
 	return GridIndex;
 }
 
-bool AWFC::CompareProfiles(const FTileProfile& lhs, const FTileProfile& rhs) const
+bool AWFC::CompareProfiles(const FString& lhs, const FString& rhs, bool Vertical) const
 {
-	bool Symmetric = lhs.ProfileName.EndsWith("s");
+	//If vertical, the profiles must match
+	if (Vertical)
+	{
+		return lhs == rhs;
+	}
+
+	//Otherwise handle logic if they are horizontal
+
+	bool Symmetric = lhs.EndsWith("s");
 
 	//Return true if symmetric and profiles match
 	if (Symmetric)
 	{
-		return lhs.ProfileName == rhs.ProfileName;
+		return lhs == rhs;
 	}
-	
+
 	//Profiles are mirrored if they end with f
-	bool LeftMirror = lhs.ProfileName.EndsWith("f");
-	bool RightMirror = rhs.ProfileName.EndsWith("f");
+	bool LeftMirror = lhs.EndsWith("f");
+	bool RightMirror = rhs.EndsWith("f");
 
 	//If both profiles are mirrored or not, they can not match
 	if (LeftMirror == RightMirror)
@@ -681,6 +743,58 @@ bool AWFC::CompareProfiles(const FTileProfile& lhs, const FTileProfile& rhs) con
 	}
 
 	//Remove the 'f' character and check if profiles match beyond that
-	return (LeftMirror ? lhs.ProfileName.LeftChop(1) : lhs.ProfileName) ==
-			(RightMirror ? rhs.ProfileName.LeftChop(1) : rhs.ProfileName);
+	return (LeftMirror ? lhs.LeftChop(1) : lhs) ==
+		(RightMirror ? rhs.LeftChop(1) : rhs);
+}
+
+
+FString AWFC::GetRotatedVerticalProfile(const FTileProfile& Profile, ERotation Rotation)
+{
+	//Symmetry on all sides
+	bool Symmetric = Profile.ProfileName.EndsWith("s");	
+
+	if (Symmetric)
+	{
+		return Profile.ProfileName;
+	}
+
+	//Store the rotation of the current profile
+	int CurrentRotation = Profile.ProfileName[Profile.ProfileName.Len() - 1];
+
+	/*
+	*		i.e. rotatign a diagonally symmetric tile
+	*
+				0		90		180		270
+	*
+	*			#.		.#		#.		.#
+	*			.#		#.		.#		#.
+	*
+	*			0 = 180			90 = 270
+	*/
+
+	//Max unique rotated profiles
+	int RotMax = 4; //Typically different at 0, 90, 180, and 270 unless there is symmetry like a diagonal tile
+
+	//Diagonal Symmetry
+	bool PartiallySymmetric = Profile.ProfileName.EndsWith("p");
+	FString BaseProfile = "";
+
+	if (PartiallySymmetric)
+	{
+		RotMax = 2;
+
+		//Remove "_#p"
+		BaseProfile = Profile.ProfileName.LeftChop(Profile.ProfileName.Len() - 3);
+	}
+	else
+	{
+		//Remove "_#"
+		BaseProfile = Profile.ProfileName.LeftChop(Profile.ProfileName.Len() - 2);
+	}
+
+	//Calculate new rotation
+	int NewRotation = GetRotatedRotation((ERotation)CurrentRotation, Rotation, RotMax);
+
+	//Append to end of profile to create rotated profile name
+	return BaseProfile + " " + FString::FromInt(NewRotation);
 }

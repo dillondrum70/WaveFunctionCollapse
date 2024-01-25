@@ -11,7 +11,7 @@ FAdjacencySide::FAdjacencySide()
 
 FAdjacencySides::FAdjacencySides()
 {
-	Sides.SetNum(4);	//Must have 6 entries, one for each side
+	Sides.SetNum(6);	//Must have 6 entries, one for each side
 }
 
 bool FTileProfile::operator==(const FTileProfile& rhs)
@@ -26,6 +26,7 @@ ATile::ATile()
 	PrimaryActorTick.bCanEverTick = true;
 
 	TileProfiles.SetNum(4);
+	VerticalTileProfiles.SetNum(2);
 }
 
 // Called when the game starts or when spawned

@@ -21,7 +21,9 @@ enum EDirection
 	DIR_EAST = 1,
 	DIR_SOUTH = 2,
 	DIR_WEST = 3,
-	DIR_MAX = 4
+	DIR_UP = 4,
+	DIR_DOWN = 5,
+	DIR_MAX = 6
 };
 
 /*
@@ -78,6 +80,9 @@ public:
 
 	UPROPERTY(EditDefaultsOnly)
 	TArray<FTileProfile> TileProfiles;
+
+	UPROPERTY(EditDefaultsOnly)
+	TArray<FTileProfile> VerticalTileProfiles;
 
 	//Points to the adjacency lists for each side at runtime after the tile is spawned
 	//The adjacency lists exist in the AWFC::Prototypes array.  No reason to store duplicate copies of the same array if they exist elsewhere

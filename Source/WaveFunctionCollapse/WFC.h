@@ -152,7 +152,16 @@ protected:
 	/// <param name="input">The direction to rotate</param>
 	/// <param name="modifier">How much to rotate by</param>
 	/// <returns>The new rotated direction expressed as an integer</returns>
-	inline int GetDirRotated(EDirection input, int modifier);
+	int GetDirRotated(EDirection input, int modifier);
+
+	/// <summary>
+	/// Similar to GetDirRotated but specifically for rotations instead
+	/// </summary>
+	/// <param name="input"></param>
+	/// <param name="modifier"></param>
+	/// <param name="RotMax">Max number of rotations, typically 0, 90, 180, or 270 but can be 0 and 90 if diagonally symmetric or just 0 if fully symmetric</param>
+	/// <returns></returns>
+	int GetRotatedRotation(ERotation input, ERotation modifier, int RotMax = 4);
 
 	/// <summary>
 	/// Convert an ERotation to an FRotator
@@ -254,5 +263,13 @@ public:
 	/// <param name="lhs"></param>
 	/// <param name="rhs"></param>
 	/// <returns>Whether or not the profiles can be adjacent</returns>
-	bool CompareProfiles(const FTileProfile& lhs, const FTileProfile& rhs) const;
+	bool CompareProfiles(const FString& lhs, const FString& rhs, bool Vertical) const;
+
+	/// <summary>
+	/// Return the profile name that corresponds to the passed profile rotated by Rotation degrees
+	/// </summary>
+	/// <param name="Profile"></param>
+	/// <param name="Rotation"></param>
+	/// <returns></returns>
+	FString GetRotatedVerticalProfile(const FTileProfile& Profile, ERotation Rotation);
 };
