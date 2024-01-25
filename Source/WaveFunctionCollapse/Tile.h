@@ -81,9 +81,6 @@ public:
 	UPROPERTY(EditDefaultsOnly)
 	TArray<FTileProfile> TileProfiles;
 
-	UPROPERTY(EditDefaultsOnly)
-	TArray<FTileProfile> VerticalTileProfiles;
-
 	//Points to the adjacency lists for each side at runtime after the tile is spawned
 	//The adjacency lists exist in the AWFC::Prototypes array.  No reason to store duplicate copies of the same array if they exist elsewhere
 	const FAdjacencySides* AdjacencyLists;

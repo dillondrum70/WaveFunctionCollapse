@@ -103,26 +103,26 @@ void AWFC::GeneratePrototypes()
 
 	//////// TEST CODE /////////
 	//Print adjacency lists
-	//FString text;
-	//for (FPrototype p : Prototypes)
-	//{
-	//	text = "\nPrototype Name: " + p.Name + "\n";
+	FString text;
+	for (FPrototype p : Prototypes)
+	{
+		text = "\nPrototype Name: " + p.Name + "\n";
 
-	//	//UE_LOG(LogTemp, Display, TEXT("%s Adjacency Lists"), *p.Name);
-	//	for (int i = 0; i < p.AdjacencyLists.Sides.Num(); i++)
-	//	{
-	//		//UE_LOG(LogTemp, Display, TEXT("%s Side"), *UEnum::GetValueAsString((EDirection)i));
-	//		text += "\n" + UEnum::GetValueAsString((EDirection)i) + " -\n";
-	//		for (int index : p.AdjacencyLists.Sides[i].AdjacencyOptions)
-	//		{
-	//			//UE_LOG(LogTemp, Display, TEXT("%s"), *Prototypes[index].Name);
-	//			text += "\t" + Prototypes[index].Name + "\n";
-	//		}
-	//		text += "\n";
-	//	}
-	//	text += "\n\n";
-	//	UE_LOG(LogTemp, Display, TEXT("%s"), *text);
-	//}
+		//UE_LOG(LogTemp, Display, TEXT("%s Adjacency Lists"), *p.Name);
+		for (int i = 0; i < p.AdjacencyLists.Sides.Num(); i++)
+		{
+			//UE_LOG(LogTemp, Display, TEXT("%s Side"), *UEnum::GetValueAsString((EDirection)i));
+			text += "\n" + UEnum::GetValueAsString((EDirection)i) + " -\n";
+			for (int index : p.AdjacencyLists.Sides[i].AdjacencyOptions)
+			{
+				//UE_LOG(LogTemp, Display, TEXT("%s"), *Prototypes[index].Name);
+				text += "\t" + Prototypes[index].Name + "\n";
+			}
+			text += "\n";
+		}
+		text += "\n\n";
+		UE_LOG(LogTemp, Display, TEXT("%s"), *text);
+	}
 	
 }
 
@@ -403,7 +403,16 @@ void AWFC::CollapseCell(int Index)
 	}
 
 	//Sanity check, ensure there is at least one possibility
-	 check(Cell->Possibilities.Num() > 0)
+	 //check(Cell->Possibilities.Num() > 0)
+
+	//Non-fatal erroring for sanity check, easier debugging
+	if (Cell->Possibilities.Num() > 0)
+	{
+		FIntVector GridInd = IntToGridIndex(0);
+		UE_LOG(LogTemp, Error, TEXT("No Possibilities in cell (%i, %i, %i)"), GridInd.X, GridInd.Y, GridInd.Z);
+		PlacePrototype(0, GridInd);
+		return;
+	}
 
 	//Default to 0
 	int TileIndex = 0;
@@ -471,6 +480,7 @@ void AWFC::PropogateCellChanges(int Index)
 			}
 
 			//////////////////////////////
+			// Print name of each possibility
 			//FIntVector temp = IntToGridIndex(OtherIndex);
 			//UE_LOG(LogTemp, Display, TEXT("Adjacent (Other) Cell: (%i, %i, %i)   "), temp.X, temp.Y, temp.Z);
 			//for (int i = 0; i < OtherCell->Possibilities.Num(); i++)
@@ -517,6 +527,7 @@ void AWFC::PlacePrototype(int PrototypeIndex, FIntVector GridIndex)
 	CollapsedTiles++;
 
 	//////// Log Code /////////
+	//Print adjacent collapsed tiles
 	/*for (int i = 0; i < EDirection::DIR_MAX; i++)
 	{
 		int otherIndex = -1;
@@ -569,7 +580,7 @@ int AWFC::GetDirRotated(EDirection input, int modifier)
 }
 
 
-int AWFC::GetRotatedRotation(ERotation input, ERotation modifier, int RotMax = 4)
+int AWFC::GetRotatedRotation(ERotation input, ERotation modifier, int RotMax)
 {
 	return ((input + RotMax) - modifier) % RotMax;
 }
