@@ -41,6 +41,76 @@ AWFC::AWFC()
 void AWFC::BeginPlay()
 {
 	Super::BeginPlay();
+
+	FString text = "";
+
+	FTileProfile profile;
+	profile.ProfileName = "v0s";
+
+	text += profile.ProfileName + " Rotated 0: " + GetRotatedVerticalProfile(profile, ERotation::ZERO) + "\n";
+	profile.ProfileName = "v0s";
+	text += profile.ProfileName + " Rotated 90: " + GetRotatedVerticalProfile(profile, ERotation::NINETY) + "\n";
+	profile.ProfileName = "v0s";
+	text += profile.ProfileName + " Rotated 180: " + GetRotatedVerticalProfile(profile, ERotation::ONE_EIGHTY) + "\n";
+	profile.ProfileName = "v0s";
+	text += profile.ProfileName + " Rotated 270: " + GetRotatedVerticalProfile(profile, ERotation::TWO_SEVENTY) + "\n\n";
+
+	profile.ProfileName = "v1_0";
+	text += profile.ProfileName + " Rotated 0: " + GetRotatedVerticalProfile(profile, ERotation::ZERO) + "\n";
+	profile.ProfileName = "v1_0";
+	text += profile.ProfileName + " Rotated 90: " + GetRotatedVerticalProfile(profile, ERotation::NINETY) + "\n";
+	profile.ProfileName = "v1_0";
+	text += profile.ProfileName + " Rotated 180: " + GetRotatedVerticalProfile(profile, ERotation::ONE_EIGHTY) + "\n";
+	profile.ProfileName = "v1_0";
+	text += profile.ProfileName + " Rotated 270: " + GetRotatedVerticalProfile(profile, ERotation::TWO_SEVENTY) + "\n\n";
+
+	profile.ProfileName = "v1_1";
+	text += profile.ProfileName + " Rotated 0: " + GetRotatedVerticalProfile(profile, ERotation::ZERO) + "\n";
+	profile.ProfileName = "v1_1";
+	text += profile.ProfileName + " Rotated 90: " + GetRotatedVerticalProfile(profile, ERotation::NINETY) + "\n";
+	profile.ProfileName = "v1_1";
+	text += profile.ProfileName + " Rotated 180: " + GetRotatedVerticalProfile(profile, ERotation::ONE_EIGHTY) + "\n";
+	profile.ProfileName = "v1_1";
+	text += profile.ProfileName + " Rotated 270: " + GetRotatedVerticalProfile(profile, ERotation::TWO_SEVENTY) + "\n\n";
+
+	profile.ProfileName = "v1_2";
+	text += profile.ProfileName + " Rotated 0: " + GetRotatedVerticalProfile(profile, ERotation::ZERO) + "\n";
+	profile.ProfileName = "v1_2";
+	text += profile.ProfileName + " Rotated 90: " + GetRotatedVerticalProfile(profile, ERotation::NINETY) + "\n";
+	profile.ProfileName = "v1_2";
+	text += profile.ProfileName + " Rotated 180: " + GetRotatedVerticalProfile(profile, ERotation::ONE_EIGHTY) + "\n";
+	profile.ProfileName = "v1_2";
+	text += profile.ProfileName + " Rotated 270: " + GetRotatedVerticalProfile(profile, ERotation::TWO_SEVENTY) + "\n\n";
+
+	profile.ProfileName = "v1_3";
+	text += profile.ProfileName + " Rotated 0: " + GetRotatedVerticalProfile(profile, ERotation::ZERO) + "\n";
+	profile.ProfileName = "v1_3";
+	text += profile.ProfileName + " Rotated 90: " + GetRotatedVerticalProfile(profile, ERotation::NINETY) + "\n";
+	profile.ProfileName = "v1_3";
+	text += profile.ProfileName + " Rotated 180: " + GetRotatedVerticalProfile(profile, ERotation::ONE_EIGHTY) + "\n";
+	profile.ProfileName = "v1_3";
+	text += profile.ProfileName + " Rotated 270: " + GetRotatedVerticalProfile(profile, ERotation::TWO_SEVENTY) + "\n\n";
+
+	profile.ProfileName = "v1_0p";
+	text += profile.ProfileName + " Rotated 0: " + GetRotatedVerticalProfile(profile, ERotation::ZERO) + "\n";
+	profile.ProfileName = "v1_0p";
+	text += profile.ProfileName + " Rotated 90: " + GetRotatedVerticalProfile(profile, ERotation::NINETY) + "\n";
+	profile.ProfileName = "v1_0p";
+	text += profile.ProfileName + " Rotated 180: " + GetRotatedVerticalProfile(profile, ERotation::ONE_EIGHTY) + "\n";
+	profile.ProfileName = "v1_0p";
+	text += profile.ProfileName + " Rotated 270: " + GetRotatedVerticalProfile(profile, ERotation::TWO_SEVENTY) + "\n\n";
+
+	profile.ProfileName = "v1_1p";
+	text += profile.ProfileName + " Rotated 0: " + GetRotatedVerticalProfile(profile, ERotation::ZERO) + "\n";
+	profile.ProfileName = "v1_1p";
+	text += profile.ProfileName + " Rotated 90: " + GetRotatedVerticalProfile(profile, ERotation::NINETY) + "\n";
+	profile.ProfileName = "v1_1p";
+	text += profile.ProfileName + " Rotated 180: " + GetRotatedVerticalProfile(profile, ERotation::ONE_EIGHTY) + "\n";
+	profile.ProfileName = "v1_1p";
+	text += profile.ProfileName + " Rotated 270: " + GetRotatedVerticalProfile(profile, ERotation::TWO_SEVENTY) + "\n\n";
+
+	UE_LOG(LogTemp, Display, TEXT("%s"), *text);
+
 	
 	//Preprocessing step, setting up for algorithm
 	GeneratePrototypes();
@@ -224,14 +294,14 @@ void AWFC::CreateAdjacencies()
 			if (!ThisTile) { UE_LOG(LogTemp, Error, TEXT("ThisTile is Invalid")); return; }
 			if (!OtherTile) { UE_LOG(LogTemp, Error, TEXT("OtherTiles is Invalid")); return; }
 			
-			//Test adjacent tiles
-			int ThisDir = GetDirRotated(EDirection::DIR_NORTH, ThisRot);
-			int TestDir = GetDirRotated(EDirection::DIR_SOUTH, TestRot);
+			//Compare adjacent profiles and add them to each others adjacency list
+			int ThisDir = GetDirRotated(EDirection::DIR_NORTH, ThisRot);	// Side of current prototype
+			int TestDir = GetDirRotated(EDirection::DIR_SOUTH, TestRot);	// Adjacent side of other prototype on the previous side (i.e. the north side of this prototype is adjacent to the south side of the other)
 			if (CompareProfiles(ThisTile->TileProfiles[ThisDir].ProfileName, OtherTile->TileProfiles[TestDir].ProfileName, false))
 			{
 				Prototypes[currentIndex].AdjacencyLists.Sides[DIR_NORTH].AdjacencyOptions.Add(testIndex);
 
-				//Do not add twice if index is the same
+				//Do not add twice if index is the same, don't want to have same entry twice in one prototype
 				if (currentIndex != testIndex)
 				{
 					Prototypes[testIndex].AdjacencyLists.Sides[DIR_SOUTH].AdjacencyOptions.Add(currentIndex);
@@ -804,8 +874,8 @@ FString AWFC::GetRotatedVerticalProfile(const FTileProfile& Profile, ERotation R
 	}
 
 	//Calculate new rotation
-	int NewRotation = GetRotatedRotation((ERotation)CurrentRotation, Rotation, RotMax);
+	int NewRotation = GetRotatedRotation((ERotation)CurrentRotation, (ERotation)(-(int)Rotation), RotMax);
 
 	//Append to end of profile to create rotated profile name
-	return BaseProfile + " " + FString::FromInt(NewRotation);
+	return BaseProfile + "_" + FString::FromInt(NewRotation) + (PartiallySymmetric ? "p" : "");
 }
