@@ -297,7 +297,8 @@ void AWFC::CreateAdjacencies()
 			//Compare adjacent profiles and add them to each others adjacency list
 			int ThisDir = GetDirRotated(EDirection::DIR_NORTH, ThisRot);	// Side of current prototype
 			int TestDir = GetDirRotated(EDirection::DIR_SOUTH, TestRot);	// Adjacent side of other prototype on the previous side (i.e. the north side of this prototype is adjacent to the south side of the other)
-			if (CompareProfiles(ThisTile->TileProfiles[ThisDir].ProfileName, OtherTile->TileProfiles[TestDir].ProfileName, false))
+			if (CompareProfiles(ThisTile->TileProfiles[ThisDir].ProfileName, OtherTile->TileProfiles[TestDir].ProfileName, false) &&
+				!InvalidEmptyProfile(currentIndex, OtherTile->TileProfiles[ThisDir].ProfileName))
 			{
 				Prototypes[currentIndex].AdjacencyLists.Sides[DIR_NORTH].AdjacencyOptions.Add(testIndex);
 
@@ -310,7 +311,8 @@ void AWFC::CreateAdjacencies()
 
 			ThisDir = GetDirRotated(EDirection::DIR_EAST, ThisRot);
 			TestDir = GetDirRotated(EDirection::DIR_WEST, TestRot);
-			if (CompareProfiles(ThisTile->TileProfiles[ThisDir].ProfileName, OtherTile->TileProfiles[TestDir].ProfileName, false))
+			if (CompareProfiles(ThisTile->TileProfiles[ThisDir].ProfileName, OtherTile->TileProfiles[TestDir].ProfileName, false) &&
+				!InvalidEmptyProfile(testIndex, OtherTile->TileProfiles[ThisDir].ProfileName))
 			{
 				Prototypes[currentIndex].AdjacencyLists.Sides[DIR_EAST].AdjacencyOptions.Add(testIndex);
 
@@ -322,7 +324,8 @@ void AWFC::CreateAdjacencies()
 
 			ThisDir = GetDirRotated(EDirection::DIR_SOUTH, ThisRot);
 			TestDir = GetDirRotated(EDirection::DIR_NORTH, TestRot);
-			if (CompareProfiles(ThisTile->TileProfiles[ThisDir].ProfileName, OtherTile->TileProfiles[TestDir].ProfileName, false))
+			if (CompareProfiles(ThisTile->TileProfiles[ThisDir].ProfileName, OtherTile->TileProfiles[TestDir].ProfileName, false) &&
+				!InvalidEmptyProfile(testIndex, OtherTile->TileProfiles[ThisDir].ProfileName))
 			{
 				Prototypes[currentIndex].AdjacencyLists.Sides[DIR_SOUTH].AdjacencyOptions.Add(testIndex);
 
@@ -334,7 +337,8 @@ void AWFC::CreateAdjacencies()
 
 			ThisDir = GetDirRotated(EDirection::DIR_WEST, ThisRot);
 			TestDir = GetDirRotated(EDirection::DIR_EAST, TestRot);
-			if (CompareProfiles(ThisTile->TileProfiles[ThisDir].ProfileName, OtherTile->TileProfiles[TestDir].ProfileName, false))
+			if (CompareProfiles(ThisTile->TileProfiles[ThisDir].ProfileName, OtherTile->TileProfiles[TestDir].ProfileName, false) &&
+				!InvalidEmptyProfile(testIndex, OtherTile->TileProfiles[ThisDir].ProfileName))
 			{
 				Prototypes[currentIndex].AdjacencyLists.Sides[DIR_WEST].AdjacencyOptions.Add(testIndex);
 
@@ -889,4 +893,9 @@ FString AWFC::GetRotatedVerticalProfile(const FTileProfile& Profile, ERotation R
 
 	//Append to end of profile to create rotated profile name
 	return BaseProfile + "_" + FString::FromInt(NewRotation) + (PartiallySymmetric ? "p" : "");
+}
+
+inline bool AWFC::InvalidEmptyProfile(int ThisIndex, FString ProfileName)
+{
+	return (EmptyProfileIsAlwaysEmpty && ThisIndex > 0 && ProfileName == EmptyProfile);
 }

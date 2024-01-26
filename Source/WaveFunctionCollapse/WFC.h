@@ -199,6 +199,12 @@ public:
 	UPROPERTY(EditDefaultsOnly)
 	TSet<TSubclassOf<ATile>> TileModels;
 
+	UPROPERTY(EditDefaultsOnly)
+	bool EmptyProfileIsAlwaysEmpty = true;	//The profile named below is always the empty tile, regardless of other objects that have that profile
+
+	UPROPERTY(EditDefaultsOnly)
+	FString EmptyProfile = "0s";
+
 	//Stores the prototypes generated at runtime
 	TArray<FPrototype> Prototypes;
 
@@ -272,4 +278,11 @@ public:
 	/// <param name="Rotation"></param>
 	/// <returns></returns>
 	FString GetRotatedVerticalProfile(const FTileProfile& Profile, ERotation Rotation);
+
+	/// <summary>
+	/// Used in conditionals to check if another prototype that is not the empty profile
+	/// </summary>
+	/// <param name="PrototypeIndex">Index in Prototypes whose profile is being checked</param>
+	/// <returns></returns>
+	inline bool InvalidEmptyProfile(int PrototypeIndex, FString ProfileName);
 };
