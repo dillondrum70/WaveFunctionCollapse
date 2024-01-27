@@ -42,94 +42,11 @@ void AWFC::BeginPlay()
 {
 	Super::BeginPlay();
 
-	/*FString text = "";
-
-	FTileProfile profile;
-	profile.ProfileName = "v0s";
-
-	text += profile.ProfileName + " Rotated 0: " + GetRotatedVerticalProfile(profile, ERotation::ZERO) + "\n";
-	profile.ProfileName = "v0s";
-	text += profile.ProfileName + " Rotated 90: " + GetRotatedVerticalProfile(profile, ERotation::NINETY) + "\n";
-	profile.ProfileName = "v0s";
-	text += profile.ProfileName + " Rotated 180: " + GetRotatedVerticalProfile(profile, ERotation::ONE_EIGHTY) + "\n";
-	profile.ProfileName = "v0s";
-	text += profile.ProfileName + " Rotated 270: " + GetRotatedVerticalProfile(profile, ERotation::TWO_SEVENTY) + "\n\n";
-
-	profile.ProfileName = "v1_0";
-	text += profile.ProfileName + " Rotated 0: " + GetRotatedVerticalProfile(profile, ERotation::ZERO) + "\n";
-	profile.ProfileName = "v1_0";
-	text += profile.ProfileName + " Rotated 90: " + GetRotatedVerticalProfile(profile, ERotation::NINETY) + "\n";
-	profile.ProfileName = "v1_0";
-	text += profile.ProfileName + " Rotated 180: " + GetRotatedVerticalProfile(profile, ERotation::ONE_EIGHTY) + "\n";
-	profile.ProfileName = "v1_0";
-	text += profile.ProfileName + " Rotated 270: " + GetRotatedVerticalProfile(profile, ERotation::TWO_SEVENTY) + "\n\n";
-
-	profile.ProfileName = "v1_1";
-	text += profile.ProfileName + " Rotated 0: " + GetRotatedVerticalProfile(profile, ERotation::ZERO) + "\n";
-	profile.ProfileName = "v1_1";
-	text += profile.ProfileName + " Rotated 90: " + GetRotatedVerticalProfile(profile, ERotation::NINETY) + "\n";
-	profile.ProfileName = "v1_1";
-	text += profile.ProfileName + " Rotated 180: " + GetRotatedVerticalProfile(profile, ERotation::ONE_EIGHTY) + "\n";
-	profile.ProfileName = "v1_1";
-	text += profile.ProfileName + " Rotated 270: " + GetRotatedVerticalProfile(profile, ERotation::TWO_SEVENTY) + "\n\n";
-
-	profile.ProfileName = "v1_2";
-	text += profile.ProfileName + " Rotated 0: " + GetRotatedVerticalProfile(profile, ERotation::ZERO) + "\n";
-	profile.ProfileName = "v1_2";
-	text += profile.ProfileName + " Rotated 90: " + GetRotatedVerticalProfile(profile, ERotation::NINETY) + "\n";
-	profile.ProfileName = "v1_2";
-	text += profile.ProfileName + " Rotated 180: " + GetRotatedVerticalProfile(profile, ERotation::ONE_EIGHTY) + "\n";
-	profile.ProfileName = "v1_2";
-	text += profile.ProfileName + " Rotated 270: " + GetRotatedVerticalProfile(profile, ERotation::TWO_SEVENTY) + "\n\n";
-
-	profile.ProfileName = "v1_3";
-	text += profile.ProfileName + " Rotated 0: " + GetRotatedVerticalProfile(profile, ERotation::ZERO) + "\n";
-	profile.ProfileName = "v1_3";
-	text += profile.ProfileName + " Rotated 90: " + GetRotatedVerticalProfile(profile, ERotation::NINETY) + "\n";
-	profile.ProfileName = "v1_3";
-	text += profile.ProfileName + " Rotated 180: " + GetRotatedVerticalProfile(profile, ERotation::ONE_EIGHTY) + "\n";
-	profile.ProfileName = "v1_3";
-	text += profile.ProfileName + " Rotated 270: " + GetRotatedVerticalProfile(profile, ERotation::TWO_SEVENTY) + "\n\n";
-
-	profile.ProfileName = "v1_0p";
-	text += profile.ProfileName + " Rotated 0: " + GetRotatedVerticalProfile(profile, ERotation::ZERO) + "\n";
-	profile.ProfileName = "v1_0p";
-	text += profile.ProfileName + " Rotated 90: " + GetRotatedVerticalProfile(profile, ERotation::NINETY) + "\n";
-	profile.ProfileName = "v1_0p";
-	text += profile.ProfileName + " Rotated 180: " + GetRotatedVerticalProfile(profile, ERotation::ONE_EIGHTY) + "\n";
-	profile.ProfileName = "v1_0p";
-	text += profile.ProfileName + " Rotated 270: " + GetRotatedVerticalProfile(profile, ERotation::TWO_SEVENTY) + "\n\n";
-
-	profile.ProfileName = "v1_1p";
-	text += profile.ProfileName + " Rotated 0: " + GetRotatedVerticalProfile(profile, ERotation::ZERO) + "\n";
-	profile.ProfileName = "v1_1p";
-	text += profile.ProfileName + " Rotated 90: " + GetRotatedVerticalProfile(profile, ERotation::NINETY) + "\n";
-	profile.ProfileName = "v1_1p";
-	text += profile.ProfileName + " Rotated 180: " + GetRotatedVerticalProfile(profile, ERotation::ONE_EIGHTY) + "\n";
-	profile.ProfileName = "v1_1p";
-	text += profile.ProfileName + " Rotated 270: " + GetRotatedVerticalProfile(profile, ERotation::TWO_SEVENTY) + "\n\n";
-
-	UE_LOG(LogTemp, Display, TEXT("%s"), *text);*/
-
 	
-	//Preprocessing step, setting up for algorithm
-	GeneratePrototypes();
-
-	GridCell DefaultCell;	//Default state of a cell before WFC
-	DefaultCell.Tile = nullptr;
-	DefaultCell.Possibilities.SetNum(Prototypes.Num());
-
-	//Fill Possibilities with all possible indices in Prototypes
-	for(int i = 0; i < Prototypes.Num(); i++)
-	{
-		DefaultCell.Possibilities[i] = i;
-	}
-
-	//Initialize grid with default values, all cells can be any prototype
-	GridCells.Init(DefaultCell, GridDimensions.X * GridDimensions.Y * GridDimensions.Z);
+	InitializeAlgorithm();
 	
 	//Run the Wave Function Collapse algorithm and place tiles
-	RunAlgorithm();
+	//RunAlgorithm();
 	
 
 	////////// TEST CODE ////////////
@@ -141,7 +58,7 @@ void AWFC::BeginPlay()
 		UE_LOG(LogTemp, Display, TEXT("%i"), t);
 	}*/
 
-	UE_LOG(LogTemp, Display, TEXT("Collapsed: %i   Total: %i"), CollapsedTiles, GridCells.Num());
+	//UE_LOG(LogTemp, Display, TEXT("Collapsed: %i   Total: %i"), CollapsedTiles, GridCells.Num());
 
 	//int x, y, z;
 
@@ -156,6 +73,33 @@ void AWFC::BeginPlay()
 	//		}
 	//	}
 	//}
+}
+
+
+
+void AWFC::InitializeAlgorithm()
+{
+	//Preprocessing step, setting up for algorithm
+	GeneratePrototypes();
+
+	GridCell DefaultCell;	//Default state of a cell before WFC
+	DefaultCell.Tile = nullptr;
+	DefaultCell.Possibilities.SetNum(Prototypes.Num());
+
+	//Fill Possibilities with all possible indices in Prototypes
+	for (int i = 0; i < Prototypes.Num(); i++)
+	{
+		DefaultCell.Possibilities[i] = i;
+	}
+
+	//Initialize grid with default values, all cells can be any prototype
+	GridCells.Init(DefaultCell, GridDimensions.X * GridDimensions.Y * GridDimensions.Z);
+
+	//Reset collapsed tiles to 0
+	CollapsedTiles = 0;
+
+	//Clear list
+	PropogationIndices = TArray<int>();
 }
 
 
@@ -381,12 +325,6 @@ void AWFC::CreateAdjacencies()
 
 void AWFC::RunAlgorithm()
 {
-	//Reset collapsed tiles to 0
-	CollapsedTiles = 0;
-
-	//Clear list
-	PropogationIndices = TArray<int>();
-
 	//While not collapsed
 	while (!IsCollapsed())
 	{
@@ -396,8 +334,10 @@ void AWFC::RunAlgorithm()
 }
 
 
-void AWFC::IterateAlgorithm()
+bool AWFC::IterateAlgorithm()
 {
+	if (IsCollapsed()) { return true; }
+
 	/*
 	*	1. Find min entropy cell, consider priority queue
 	*	2. Collapse that cell by choosing and placing random tile (or the last remaining tile/ error if no remaining possibilities)
@@ -410,7 +350,7 @@ void AWFC::IterateAlgorithm()
 	//Failed to find lowest entropy, exit early
 	if (index < 0 || index >= GridCells.Num()) { 
 		UE_LOG(LogTemp, Error, TEXT("Failed to find lowest entropy cell"));
-		return; 
+		return true; 
 	}
 
 	//Collapse the grid cell at the lowest entropy index
@@ -418,6 +358,8 @@ void AWFC::IterateAlgorithm()
 	
 	//Propogate changes from collapsed cell
 	PropogateCellChanges(index);
+
+	return IsCollapsed();
 }
 
 

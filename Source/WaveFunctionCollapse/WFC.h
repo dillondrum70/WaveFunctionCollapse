@@ -83,6 +83,7 @@ public:
 protected:
 
 	//How many tiles have been collapsed by WFC
+	UPROPERTY(BlueprintReadOnly, meta=(AllowPrivateAccess = true))
 	int CollapsedTiles;
 
 	TArray<int> PropogationIndices;
@@ -93,6 +94,11 @@ protected:
 	/*
 	*	Preprocessing Functions
 	*/
+
+	/// <summary>
+	/// Run before the start of the algorithm
+	/// </summary>
+	void InitializeAlgorithm();
 
 	/// <summary>
 	/// Create prototypes for all possible rotations of each tile
@@ -111,12 +117,15 @@ protected:
 	/// <summary>
 	/// Run the WFC algorithm and place tiles
 	/// </summary>
+	UFUNCTION(BlueprintCallable)
 	void RunAlgorithm();
 
 	/// <summary>
 	/// Run at each iteration of the WFC algorithm
 	/// </summary>
-	void IterateAlgorithm();
+	/// <returns>Returns if algorithm has collapsed</returns>
+	UFUNCTION(BlueprintCallable)
+	bool IterateAlgorithm();
 
 	/// <summary>
 	/// Find the lowest entropy cells
